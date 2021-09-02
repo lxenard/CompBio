@@ -59,7 +59,13 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 
 # Projet
 
-## Étapes
+## Requirements
+
+* python 3.8
+* pymol 2.5.2  conda install -c schrodinger pymol-bundle 
+* numpy 1.20.3
+
+## Résumé étapes
 
 1) Choisir des protéines membranaires et globulaires de référence (simple à analyser, voir banque OPM)
 2) Calcul de la surface accessible au solvant de chaque acide aminé avec NACCESS ou DSSP
@@ -69,19 +75,15 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 6) Déplacement d'une tranche de 1 Å normale à une droite et calcul de l'hydrophobicité relative des résidus dans les zones exposées dans la tranche
 7) Calcul de la position de la membrane par la moyenne de l'hydrophobicité relative et en comparant ces valeurs selon les différentes droites
 
-## 1) Choix des protéines
-
-OPM : Orientation of Proteins in Membranes database
-https://opm.phar.umich.edu/
-
 
 Ne garder que les Cα
 Classifier les résidus en 2 catégories : hydrophobes et non hydrophobes
 On cherche la position de la membrane qui maximise le nombre de résidus hydrophobes présents à l'intérieur de la bicouche
 Calcul du centre de gravité, et y centrer le repère
-Dessin d'une sphère centrée sur le centre de gravité et échantillonnage de la surface de la sphère
-Les points échantillonnés donnent les vecteurs directeurs des tranches
-Les tranches sont toujours centrées et on commence par une tranche d'épaisseur 14Å donc 7Å de part et d'autre
+Dessin d'une sphère centrée sur le centre de gravité et échantillonnage de la surface de la sphère. Pour commencer, 50 points dans un hémisphère
+Les points échantillonnés donnent les vecteurs normaux aux vecteurs directeurs des tranches initiales
+Ces tranches sont toujours centrées et on commence par une tranche d'épaisseur 14Å donc 7Å de part et d'autre
+Puis pour chaque vecteur, définition de tranches par fenêtre glissante (déplacement de 2Å pour commencer)
 Maximisation de la fonction objectif pour chacune des tranches. Une fois la meilleur tranche identifiée, on l'agrandit progressivement par tranche de 1Å jusqu'à maximiser la fonction objectif.
 Possible d'identifier plusieurs membranes, dans ce cas elle doivent toutes être traitées.
 
@@ -89,3 +91,23 @@ Possible d'identifier plusieurs membranes, dans ce cas elle doivent toutes être
 Fonction objectif pour commencer : rapport entre les résidus externes et ceux internes à la membrane 
 
 Pour visualiser, utiliser PyMol pour plotter la structure ac un code couleur pour les résidus hydrophobes et non hydrophobes, puis tracer la membrane telle qu'elle a été déterminée
+
+
+## 1) Choix des protéines
+
+OPM : Orientation of Proteins in Membranes database
+https://opm.phar.umich.edu/
+
+
+
+
+
+## Implémentation
+
+résidu -> hydrophobe
+	   -> non hydrophobe
+molécule -> Cα
+point
+vecteur
+membrane
+sphère
