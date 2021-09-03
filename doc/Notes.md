@@ -75,7 +75,6 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 6) Déplacement d'une tranche de 1 Å normale à une droite et calcul de l'hydrophobicité relative des résidus dans les zones exposées dans la tranche
 7) Calcul de la position de la membrane par la moyenne de l'hydrophobicité relative et en comparant ces valeurs selon les différentes droites
 
-
 Ne garder que les Cα
 Classifier les résidus en 2 catégories : hydrophobes et non hydrophobes
 On cherche la position de la membrane qui maximise le nombre de résidus hydrophobes présents à l'intérieur de la bicouche
@@ -98,16 +97,64 @@ Pour visualiser, utiliser PyMol pour plotter la structure ac un code couleur pou
 OPM : Orientation of Proteins in Membranes database
 https://opm.phar.umich.edu/
 
-
+Équation d'une sphère de centre (0, 0, 0) : *x² + y² + z² = r²*
+Chercher un module de géométrie pour ne pas réinventer la roue
 
 
 
 ## Implémentation
 
-résidu -> hydrophobe
-	   -> non hydrophobe
-molécule -> Cα
-point
-vecteur
-membrane
-sphère
+### Constantes 
+nb de points pour échantillonner la demi-sphère
+incrément pour la fenêtre glissante
+taille initiale de tranche
+incrément pour le changement de taille de la tranche
+
+### Classes
+
+Point
+	x
+	y
+	z
+
+Vector
+	Point start (0, 0, 0) attribut de classe
+	Point end
+
+Sphere
+	Point center (0, 0, 0) attribut de classe
+	int radius (peu importe)
+	-~-
+	sample(int nb)
+		Échantillonne la surface de la demi-sphère z-positive avec nb nombre de points
+
+Slice
+	Vector normal
+	Point center
+	int thickness
+	*or maybe use 2 planes instead...?*
+	float score
+	list(residue)
+	-~-
+	has_residue(Residue res)
+		Détermine si le résidu res appartient à la tranche
+
+
+
+Residue -> Res_hydrophobic
+	Point position
+
+Molecule -> C_alpha
+
+Protein
+
+
+
+Récupérer les Cα
+Calculer le centre de gravité de ces Cα
+Centrer le repère sur le centre de gravité
+Générer une sphère (ou demi-sphère) centrée de rayon quelconque (mais suffisant pour que l'échantillonnage de la surface se fasse facilement donc mieux vaut prendre trop grand que trop petit)
+Échantillonner la surface de la demi-sphère z-positive de manière à obtenir n points
+Création de n vecteurs à partir de ces n points
+Pour chaque vecteur
+	déterminer la tranche centrée normale
