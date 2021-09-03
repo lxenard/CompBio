@@ -64,6 +64,8 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 * python 3.8
 * pymol 2.5.2  conda install -c schrodinger pymol-bundle 
 * numpy 1.20.3
+* biopython 1.79 conda install -c conda-forge biopython
+* dssp 3.0 conda install -c salilab dssp 
 
 ## Résumé étapes
 
@@ -96,19 +98,31 @@ Pour visualiser, utiliser PyMol pour plotter la structure ac un code couleur pou
 
 OPM : Orientation of Proteins in Membranes database
 https://opm.phar.umich.edu/
+Commencer par travailler sur [2n90](https://opm.phar.umich.edu/proteins/3252), ne prendre qu'une seule chaîne (1 seul segment transmembranaire)
+Puis prendre des protéines avec plus de segments comme par exemple [6g79](https://opm.phar.umich.edu/proteins/3904), ne pas hésiter à couper la prot lorsque trop longue et en dehors de la membrane.
 
-Équation d'une sphère de centre (0, 0, 0) : *x² + y² + z² = r²*
-Chercher un module de géométrie pour ne pas réinventer la roue
+Lecture du fichier PDB
+
+
+## 2) Filtre DSSP
+
+https://biopython.org/docs/1.75/api/Bio.PDB.DSSP.html
+https://anaconda.org/salilab/dssp
+
+https://swift.cmbi.umcn.nl/gv/dssp/
+
+
 
 
 
 ## Implémentation
 
 ### Constantes 
-nb de points pour échantillonner la demi-sphère
-incrément pour la fenêtre glissante
-taille initiale de tranche
-incrément pour le changement de taille de la tranche
+
+N_DIRECTIONS nb de points pour échantillonner la demi-sphère
+SLIDING_WINDOW_SIZE incrément pour la fenêtre glissante
+SLICE_INIT_SIZE taille initiale de tranche
+SLICE_STEP_SIZE incrément pour le changement de taille de la tranche
 
 ### Classes
 
@@ -124,30 +138,65 @@ Vector
 Sphere
 	Point center (0, 0, 0) attribut de classe
 	int radius (peu importe)
-	-~-
+	.
 	sample(int nb)
 		Échantillonne la surface de la demi-sphère z-positive avec nb nombre de points
+	*Équation d'une sphère de centre (0, 0, 0) : x² + y² + z² = r²*
+	*Chercher un module de géométrie pour ne pas réinventer la roue*
+
 
 Slice
 	Vector normal
 	Point center
 	int thickness
-	*or maybe use 2 planes instead...?*
 	float score
-	list(residue)
-	-~-
-	has_residue(Residue res)
-		Détermine si le résidu res appartient à la tranche
+	list(Residue) residues
+	.
+	find_residues(list(Residue))
+		Calcul les 2 plans délimitant la tranche
+		Pour chaque résidu
+			Détermine si résidu appartient à la tranche
+			Si oui
+				Ajouter le résidu à la liste residues
+	compute_score()
+		Rapport entre les résidus externes et ceux internes à la membrane
 
 
+
+
+Un résidu est assimilé à un Cα
 
 Residue -> Res_hydrophobic
+		-> Res_polar
 	Point position
+	*voir en fonction du besoin si hydrophobic = sous-classe ou bool*
 
-Molecule -> C_alpha
 
 Protein
+	list(Residue) residues
+	list(Slice) slices
+	Sphere sphere
+	.
+	get_nb_residues()
+		Renvoie la taille de la liste residues
+	compute_slices(int N_DIRECTIONS)
+		Echantillonne la surface de la demi-sphère en N_DIRECTIONS points
+		Pour chaque point
+			Détermine le vecteur passant par l'origine du repère
+			Instancie la Slice
+			Ajoute la Slice à slices
+			Tant qu'on ne sort pas de la protéine
+				Translater le centre de la slice de SLIDING_WINDOW_SIZE dans le sens du vecteur
+				Instancier la nouvelle tranche
+				Ajouter la Slice à slices
+			Tant qu'on ne sort pas de la protéine
+				Translater le centre de la slice de SLIDING_WINDOW_SIZE dans le sens opposé du vecteur
+				Instancier la nouvelle tranche
+				Ajouter la Slice à slices
 
+
+
+Critère d'arrêt de sortie de la protéine : lorsque plus aucun résidu hydrophobe détecté
 
 
 Récupérer les Cα
@@ -157,4 +206,21 @@ Générer une sphère (ou demi-sphère) centrée de rayon quelconque (mais suffi
 Échantillonner la surface de la demi-sphère z-positive de manière à obtenir n points
 Création de n vecteurs à partir de ces n points
 Pour chaque vecteur
-	déterminer la tranche centrée normale
+	Déterminer la tranche centrée normale
+	Déterminer les tranches translatées selon le vecteur normal
+		Pour chaque tranche
+			Identifier les résidus hydrophobes de la tranche
+			Calculer le score de la tranche
+Comparer les scores (voir si prendre le meilleur score ou si prendre les scores supérieur à un certain seuil afin de pouvoir détecter des membranes multiples)
+Pour chaque tranche à score élévé
+	Tant que le score augmente
+		Agrandir la tranche dans le sens du vecteur
+	Tant que le score augmente
+		Agrandir la tranche dans le sens opposé du vecteur
+	Retourner la nouvelle tranche obtenue
+	Dessiner la tranche (PyMol)
+
+	intégrine
+	cadhérine
+	CMH classe I
+	porine
