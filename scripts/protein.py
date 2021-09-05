@@ -3,7 +3,11 @@
 Created on Sun Sep  5 16:55:30 2021
 
 @author: Laura Xénard
+
+https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
 """
+
+import math
 
 class Point:
 
@@ -37,6 +41,63 @@ class Vector:
 
     def __repr__(self):
         return f"(start: {self.start}, end: {self.end})"
+
+
+class Sphere:
+
+    origin = Point(0, 0, 0)
+
+    def __init__(self, radius=1):
+        self.radius = radius
+        self.surf_pts = []
+
+    def sample_surface(self, nb):
+        """
+        Generate around 'nb' equidistributed Points on the surface of the
+        demi z-positive Sphere.
+        This code implements the Deserno algorithm:
+        https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
+        and is based on dinob0t's code:
+        https://gist.github.com/dinob0t/9597525
+
+        Parameters
+        ----------
+        nb : int
+            Number of Points to be generated.
+
+        Raises
+        ------
+        ValueError
+            Raised when the number of Points to generate is inferior or equal
+            to 0.
+
+        Returns
+        -------
+        int
+            The number of Points that have been generated. It may not be
+            exactly equal to 'nb' but should be close to it.
+
+        """
+        if nb <= 0:
+            raise ValueError
+
+        a = 4.0 * math.pi * (self.radius**2.0 / nb)
+        d = math.sqrt(a)
+        m_theta = int(round(math.pi / d))
+        d_theta = math.pi / m_theta
+        d_phi = a / d_theta
+
+        for m in range(0, m_theta):
+            theta = math.pi * (m + 0.5) / m_theta
+            m_phi = int(round(2.0 * math.pi * math.sin(theta) / d_phi))
+            for n in range(0, m_phi):
+                phi = 2.0 * math.pi * n / m_phi
+                x = self.radius * math.sin(theta) * math.cos(phi)
+                y = self.radius * math.sin(theta) * math.sin(phi)
+                z = self.radius * math.cos(theta)
+                if z>= 0:
+                    self.surf_pts.append(Point(x, y, z))
+        return len(self.surf_pts)
 
 
 class Residue:
