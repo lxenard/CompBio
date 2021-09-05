@@ -45,7 +45,7 @@ class Residue:
         Raises
         ------
         ValueError
-            DESCRIPTION.
+            Raised when the amino acid of the residue is not valid.
 
         Returns
         -------
@@ -53,11 +53,12 @@ class Residue:
             True if the residue is hydrophobic, False otherwise.
 
         """
-        if self.aa == '':
+        hydrophobic = ('PHE', 'GLY', 'ILE', 'LEU', 'MET', 'VAL', 'TRP', 'TYR')
+        hydrophilic = ('ALA', 'CYS', 'ASP', 'GLU', 'HIS', 'LYS', 'ASN', 'PRO',
+                       'GLN', 'ARG', 'SER', 'THR')
+        if self.aa not in hydrophobic and self.aa not in hydrophilic:
             raise ValueError
 
-        # F, G, I, L, M, V, W and Y
-        hydrophobic = ('PHE', 'GLY', 'ILE', 'LEU', 'MET', 'VAL', 'TRP', 'TYR')
         if self.aa in hydrophobic:
             return True
         else:
