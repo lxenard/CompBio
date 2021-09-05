@@ -45,15 +45,14 @@ if __name__ == '__main__':
     model = 0
     chain = 'A'
     IS_EXPOSED_THRESHOLD = 0.3
+    DEBUG = False
+    N_DIRECTIONS = 8 # nb de points pour échantillonner la demi-sphère
 
-    # Ouverture et parsing du fichier PDB
+    # Opening and parsing of the PDB file.
     p = PDBParser()
     ptn_id = Path(pdb_path).stem
     structure = p.get_structure(ptn_id, pdb_path)
     dssp = DSSP(structure[model], pdb_path)
-
-
-
 
     # Selection of the exposed residues.
     # For better results, the burrowed residues are not taken into account
@@ -70,7 +69,20 @@ if __name__ == '__main__':
         if tmp.is_exposed(IS_EXPOSED_THRESHOLD):
             residues.append(tmp)
 
-    print(barycenter(residues))
+    # Place the center of the coordinate system at the residues barycenter.
+    bary = ptn.Point(*barycenter(residues))
+    if DEBUG:
+        print(f"Barycenter: {bary}")
+    for res in residues:
+        res.coord -= bary
+
+    # Generate N equidistributed points on the surface of a sphere
+
+
+
+
+
+
 
 
 
