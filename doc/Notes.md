@@ -88,8 +88,8 @@ Puis pour chaque vecteur, définition de tranches par fenêtre glissante (dépla
 Maximisation de la fonction objectif pour chacune des tranches. Une fois la meilleur tranche identifiée, on l'agrandit progressivement par tranche de 1Å jusqu'à maximiser la fonction objectif.
 Possible d'identifier plusieurs membranes, dans ce cas elle doivent toutes être traitées.
 
-
-Fonction objectif pour commencer : rapport entre les résidus externes et ceux internes à la membrane 
+Fonction objectif pour commencer : ~~rapport entre les résidus externes et ceux internes à la membrane~~
+**nb de résidus hydrophobes dans la membrane / nb de résidus hydrophobes total**
 
 Pour visualiser, utiliser PyMol pour plotter la structure ac un code couleur pour les résidus hydrophobes et non hydrophobes, puis tracer la membrane telle qu'elle a été déterminée
 
@@ -102,7 +102,6 @@ Commencer par travailler sur [2n90](https://opm.phar.umich.edu/proteins/3252), n
 Puis prendre des protéines avec plus de segments comme par exemple [6g79](https://opm.phar.umich.edu/proteins/3904), ne pas hésiter à couper la prot lorsque trop longue et en dehors de la membrane.
 
 Lecture du fichier PDB
-
 
 ## 2) Filtre DSSP
 
@@ -144,6 +143,10 @@ Sphere
 	*Équation d'une sphère de centre (0, 0, 0) : x² + y² + z² = r²*
 	*Chercher un module de géométrie pour ne pas réinventer la roue*
 
+https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
+https://gist.github.com/dinob0t/9597525
+
+
 
 Slice
 	Vector normal
@@ -171,7 +174,6 @@ Residue -> Res_hydrophobic
 	Point position
 	*voir en fonction du besoin si hydrophobic = sous-classe ou bool*
 
-
 Protein
 	list(Residue) residues
 	list(Slice) slices
@@ -198,7 +200,6 @@ Protein
 
 Critère d'arrêt de sortie de la protéine : lorsque plus aucun résidu hydrophobe détecté
 
-
 Récupérer les Cα
 Calculer le centre de gravité de ces Cα
 Centrer le repère sur le centre de gravité
@@ -224,3 +225,13 @@ Pour chaque tranche à score élévé
 	cadhérine
 	CMH classe I
 	porine
+
+On ne travaille que sur les résidues considérés comme exposés. La partie *"In order to*
+improve the membrane detection algorithm, the ‘water accessible surface’ is considered only for those atoms which could potentially interact with the lipid bilayer. These membrane exposed atoms are selected by the following approximate filtering procedure: the protein is cut into 1 Å wide slices along a predefined axis, and around each slice of atoms, test points are placed on a rectangle which embeds all the atoms within that slice. Those atoms lying closest to any of the test points are defined to be on the outside (i.e. possible membrane exposed) of the surface. For all other atoms the ‘water accessible surface area’ is set to zero." décrite dans l'article n'est donc pas à implementer mais est remplacée par la sélection des résidus dont le ASA est supérieur à un certain seuil (0.1~0.3).
+
+Pour vérifier la position du centre de gravité :
+
+```
+pseudoatom tmp, pos=[10.0, 17.0, -3.0]
+tmp expand 6
+```
