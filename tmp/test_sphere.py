@@ -14,7 +14,7 @@ from mayavi import mlab
 
 
 
-nb = 100
+nb = 8
 radius = 1
 
 points_x = []

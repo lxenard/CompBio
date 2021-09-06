@@ -42,6 +42,14 @@ class Vector:
     def __repr__(self):
         return f"(start: {self.start}, end: {self.end})"
 
+    def get_xx(self):
+        return [self.start.x, self.end.x]
+
+    def get_yy(self):
+        return [self.start.y, self.end.y]
+
+    def get_zz(self):
+        return [self.start.z, self.end.z]
 
 class Sphere:
 
@@ -103,7 +111,7 @@ class Sphere:
 class Residue:
 
     def __init__(self, num=0, aa='', p=Point(), asa=0):
-        self.num=num
+        self.num = num
         self.aa = aa
         self.coord = p
         self.asa = asa
@@ -163,15 +171,64 @@ class Residue:
 
 class Slice:
 
-    def __init__(self):
+    def __init__(self, center, normal):
+        self.center = center
+        self.normal = normal
+        self.thickness = 14
+        self.score = 0
+        self.residues = []
 
-        pass
+    def find_residues(self, residues):
 
-    def find_residues(self):
-        pass
+        for res in residues:
+
+            d = self.thickness / 2
+
+            # Normal vector
+            a = self.normal.end.x
+            b = self.normal.end.y
+            c = self.normal.end.z
+
+            # Plane vector
+            x = res.coord.x
+            y = res.coord.y
+            z = res.coord.z
+
+
+
+            if a*x + b*y + c*z <= d and a*x + b*y + c*z >= -d:
+                self.residues.append(res)
+                print('True')
+            else:
+                print('False')
+
+# =============================================================================
+#         # Equation du plan supérieur :
+#         a*x + b*y + z*c + d = 0
+#         # Equation du plan inférieur :
+#         a*x + b*y + z*c - d= 0
+#
+#         z = (-a*x - b*y + d) / c
+# =============================================================================
+
 
     def compute_score(self):
         pass
 
-    def thicken(self):
+    def thicken(self, increment=1, direction='top'):
+        """
+
+
+        Parameters
+        ----------
+        increment : float, optional
+            How much to thicken the Slice. The default is 1.
+        direction : {'top', 'bottom'}, optional
+            In which direction to thicken the Slice. The default is 'top'.
+
+        Returns
+        -------
+        None.
+
+        """
         pass
