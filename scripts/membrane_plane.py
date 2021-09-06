@@ -136,16 +136,25 @@ if __name__ == '__main__':
     mlab.surf(x, y, zz)
 
 
+    for s, sli in enumerate(slices):
+        sli.find_residues(residues)
+        sli.compute_score()
+        print(f"Score slice {s} : {sli.score}")
+
+    print(min(slices))
+
 
     # obtenir les plans translatés
-    slices[0].find_residues(residues)
-    for res in slices[0].residues:
-        mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
-                      scale_factor=1.1, color=(0, 1, 0))
-
-    mlab.show()
-    slices[0].compute_score()
-    print(f"Score slice 0 : {slices[0].score}")
+# =============================================================================
+#     slices[0].find_residues(residues)
+#     for res in slices[0].residues:
+#         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
+#                       scale_factor=1.1, color=(0, 1, 0))
+#
+#     mlab.show()
+#     slices[0].compute_score()
+#     print(f"Score slice 0 : {slices[0].score}")
+# =============================================================================
 
 
 

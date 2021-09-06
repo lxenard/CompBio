@@ -178,6 +178,36 @@ class Slice:
         self.residues = []
         self.score = 0
 
+    def __repr__(self):
+        thickness = sum(self.thickness)
+        nb_residues = len(self.residues)
+        return (f"(center: {self.center}, normal: {self.normal},"
+                f"thickness: {thickness}, nb_residues: {nb_residues})")
+
+    def __lt__(self, other):
+        if self.score < other.score:
+            return True
+        else:
+            return False
+
+    def __gt__(self, other):
+        if self.score > other.score:
+            return True
+        else:
+            return False
+
+    def __le__(self, other):
+        if self.score <= other.score:
+            return True
+        else:
+            return False
+
+    def __ge__(self, other):
+        if self.score >= other.score:
+            return True
+        else:
+            return False
+
     def find_residues(self, residues):
         """
         From a list of Residues, find those which are inside the Slice.
@@ -213,7 +243,6 @@ class Slice:
                 self.residues.append(res)
 
     def compute_score(self):
-
         # TODO: gérer le cas où les résidus n'ont pas encore été cherchés
         nb_hydrophobic = sum([r.is_hydrophobic() for r in self.residues])
         self.score = nb_hydrophobic / len(self.residues)
