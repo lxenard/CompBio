@@ -118,7 +118,7 @@ if __name__ == '__main__':
     slices = []
     # obtenir les plans orthogonaux
     for v in vectors:
-        s = ptn.Slice(v.start, v)
+        s = ptn.Slice(0, v)
         slices.append(s)
 
     for res in residues:
@@ -140,14 +140,12 @@ if __name__ == '__main__':
     # obtenir les plans translatés
     slices[0].find_residues(residues)
     for res in slices[0].residues:
-        print(res)
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1.1, color=(0, 1, 0))
 
-
     mlab.show()
-
-
+    slices[0].compute_score()
+    print(f"Score slice 0 : {slices[0].score}")
 
 
 

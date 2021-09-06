@@ -174,61 +174,71 @@ class Slice:
     def __init__(self, center, normal):
         self.center = center
         self.normal = normal
-        self.thickness = 14
-        self.score = 0
+        self.thickness = [7, 7]
         self.residues = []
+        self.score = 0
 
     def find_residues(self, residues):
-
-        for res in residues:
-
-            d = self.thickness / 2
-
-            # Normal vector
-            a = self.normal.end.x
-            b = self.normal.end.y
-            c = self.normal.end.z
-
-            # Plane vector
-            x = res.coord.x
-            y = res.coord.y
-            z = res.coord.z
-
-
-
-            if a*x + b*y + c*z <= d and a*x + b*y + c*z >= -d:
-                self.residues.append(res)
-                print('True')
-            else:
-                print('False')
-
-# =============================================================================
-#         # Equation du plan supérieur :
-#         a*x + b*y + z*c + d = 0
-#         # Equation du plan inférieur :
-#         a*x + b*y + z*c - d= 0
-#
-#         z = (-a*x - b*y + d) / c
-# =============================================================================
-
-
-    def compute_score(self):
-        pass
-
-    def thicken(self, increment=1, direction='top'):
         """
-
+        From a list of Residues, find those which are inside the Slice.
 
         Parameters
         ----------
-        increment : float, optional
-            How much to thicken the Slice. The default is 1.
-        direction : {'top', 'bottom'}, optional
-            In which direction to thicken the Slice. The default is 'top'.
+        residues : list(Residue)
+            The Residues to be checked.
 
         Returns
         -------
         None.
 
         """
-        pass
+        for res in residues:
+
+            # Normal vector.
+            a = self.normal.end.x
+            b = self.normal.end.y
+            c = self.normal.end.z
+
+            # Plane vector.
+            x = res.coord.x
+            y = res.coord.y
+            z = res.coord.z
+
+            # Position of the planes along the normal vector.
+            d1 = self.center - self.thickness[0]
+            d2 = self.center + self.thickness[1]
+
+            # The residues between the 2 planes are inside the Slice.
+            if a*x + b*y + c*z >= d1 and a*x + b*y + c*z <= d2:
+                self.residues.append(res)
+
+    def compute_score(self):
+
+        # TODO: gérer le cas où les résidus n'ont pas encore été cherchés
+        nb_hydrophobic = sum([r.is_hydrophobic() for r in self.residues])
+        self.score = nb_hydrophobic / len(self.residues)
+
+    def thicken(self, increment=1, normal_direction=True):
+        """
+        Thicken the Slice along the direction of the normal vector.
+
+        Parameters
+        ----------
+        increment : float, optional
+            How much to thicken the Slice. The default is 1.
+        normal_direction : bool, optional
+            In which direction to thicken the Slice. The default is True.
+            True corresponds to the normal vector direction, False to the
+            opposite direction.
+
+        Returns
+        -------
+        None.
+
+        """
+        if normal_direction:
+            self.thickness[1] += increment
+        else:
+            self.thickness[0] += increment
+        # TODO: gérer la maj automatique des résidus compris dans la membrane
+        # et le calcul du score.
