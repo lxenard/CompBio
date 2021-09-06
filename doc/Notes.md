@@ -65,7 +65,8 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 * pymol 2.5.2  conda install -c schrodinger pymol-bundle 
 * numpy 1.20.3
 * biopython 1.79 conda install -c conda-forge biopython
-* dssp 3.0 conda install -c salilab dssp 
+* dssp 3.0 conda install -c salilab dssp pour 3.8
+* dssp 2.0 conda install -c speleo3 dssp pour 3.7
 
 ## Résumé étapes
 
@@ -235,3 +236,14 @@ Pour vérifier la position du centre de gravité :
 pseudoatom tmp, pos=[10.0, 17.0, -3.0]
 tmp expand 6
 ```
+
+trouver plan normal à un vecteur
+
+faire ajustement après avoir trouvé la meilleure direction
+
+ne pas prendre de protéine canal
+
+organisation : conda, POO, github
+pseudo code ou schéma en annexe
+
+https://www.quora.com/Given-a-point-and-a-plane-how-would-you-determine-which-side-of-the-plane-the-point-lies
