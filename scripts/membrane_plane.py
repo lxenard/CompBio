@@ -135,13 +135,24 @@ if __name__ == '__main__':
     mlab.surf(x, y, z)
     mlab.surf(x, y, zz)
 
-
     for s, sli in enumerate(slices):
         sli.find_residues(residues)
-        sli.compute_score()
+        try:
+            sli.compute_score()
+        except ValueError:
+            print("Method must be 'ASA' or 'simple'")
         print(f"Score slice {s} : {sli.score}")
 
-    print(min(slices))
+    mlab.show()
+
+# =============================================================================
+#     for s, sli in enumerate(slices):
+#         sli.find_residues(residues)
+#         sli.compute_score()
+#         print(f"Score slice {s} : {sli.score}")
+# =============================================================================
+
+    print(max(slices))
 
 
     # obtenir les plans translatés
@@ -161,18 +172,13 @@ if __name__ == '__main__':
 
 
 
-# =============================================================================
-#     try:
-#         hydrophobic = residues[0].is_hydrophobic()
-#     except ValueError:
-#         print(f"Can't determine hydrophobicity of {res}: unknown amino acid.")
-#     print(hydrophobic)
-# =============================================================================
 
 
 
 
 
+    # TODO: pour le renvoi des résultats, ne pas oublier de translater
+    # la membrane puisuqe le centre du repère a été déplacé sur le barycentre
 
     end = time.time() - start
     print('\nDONE in {:.0f} min {:.2f} s.'.format(end // 60, end % 60))

@@ -242,10 +242,59 @@ class Slice:
             if a*x + b*y + c*z >= d1 and a*x + b*y + c*z <= d2:
                 self.residues.append(res)
 
-    def compute_score(self):
+    def compute_score(self, method='ASA'):
+        """
+        Compute the score of the Slice. The higher the score the more
+        probable it is that the Slice represents the position of the
+        membrane.
+
+        Parameters
+        ----------
+        method : {'ASA', 'simple'}, optional
+            The method used to compute the Slice score. 'ASA' computes
+            the ratio accessible surface area (ASA) of hydrophobic
+            residues to ASA of all residues. 'simple' computes the ratio
+            number of hydrophobic residues to total number of residues.
+            The default is 'ASA'.
+
+        Raises
+        ------
+        ValueError
+            Raised when the method to use is neither 'ASA' nor 'simple'.
+
+        Returns
+        -------
+        None.
+
+        """
         # TODO: gérer le cas où les résidus n'ont pas encore été cherchés
-        nb_hydrophobic = sum([r.is_hydrophobic() for r in self.residues])
-        self.score = nb_hydrophobic / len(self.residues)
+
+        if method != 'ASA' and method != 'simple':
+            raise ValueError
+
+        if method == 'ASA':
+            hydrophobic_asa = 0
+            total_asa = 0
+            for res in self.residues:
+                try:
+                    if res.is_hydrophobic():
+                        hydrophobic_asa += res.asa
+                    total_asa += res.asa
+                except ValueError:
+                    print(f"Can't determine hydrophobicity of {res}: "
+                          f"unknown amino acid.")
+            self.score = hydrophobic_asa / total_asa
+
+        elif method == 'simple':
+            cpt = 0
+            for res in self.residues:
+                try:
+                    if res.is_hydrophobic():
+                        cpt += 1
+                except ValueError:
+                    print(f"Can't determine hydrophobicity of {res}: "
+                          f"unknown amino acid.")
+            self.score = cpt / len(self.residues)
 
     def thicken(self, increment=1, normal_direction=True):
         """
