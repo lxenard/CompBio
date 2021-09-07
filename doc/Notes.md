@@ -61,12 +61,16 @@ fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 
 ## Requirements
 
-* python 3.8
-* pymol 2.5.2  conda install -c schrodinger pymol-bundle 
+* python 3.8 ou 3.7
+
 * numpy 1.20.3
 * biopython 1.79 conda install -c conda-forge biopython
-* dssp 3.0 conda install -c salilab dssp pour 3.8
-* dssp 2.0 conda install -c speleo3 dssp pour 3.7
+* dssp 3.0 conda install -c salilab dssp LINUX
+* dssp 2.0 conda install -c speleo3 dssp WINDOWS
+
+Visualisation
+* mayavi 4.7.1  conda install -c anaconda mayavi 3.7
+* pymol 2.5.2  conda install -c schrodinger pymol-bundle 3.8
 
 ## Résumé étapes
 

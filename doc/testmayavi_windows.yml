@@ -1,0 +1,11 @@
+name: testmayavi
+channels:
+  - defaults
+  - salilab
+  - conda-forge
+dependencies:
+  - python=3.7
+  - biopython=1.79
+  - dssp=3.0.0 # A MODIFIER speleo3 2.0
+  - numpy=1.20.3
+  - spyder=5.0.5

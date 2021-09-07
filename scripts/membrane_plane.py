@@ -43,12 +43,13 @@ if __name__ == '__main__':
     start = time.time()
 
     # TODO: Argument à sortir par argparse
-    pdb_path = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
+    #pdb_path = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
+    pdb_path = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
     model = 0
     chain = 'A'
     IS_EXPOSED_THRESHOLD = 0.3
     DEBUG = False
-    N_DIRECTIONS = 20 # nb de points pour échantillonner la demi-sphère
+    N_DIRECTIONS = 20  # nb de points pour échantillonner la demi-sphère
 
     # Opening and parsing of the PDB file.
     p = PDBParser()
@@ -83,7 +84,6 @@ if __name__ == '__main__':
     sphere = ptn.Sphere()
     sphere.sample_surface(N_DIRECTIONS*2)
 
-
     # Create a sphere
     pi = np.pi
     cos = np.cos
@@ -110,10 +110,10 @@ if __name__ == '__main__':
 #                     tube_radius=None)
 # =============================================================================
         vectors.append(v)
-    #mlab.show()
+    # mlab.show()
 
-    mlab.plot3d(v.get_xx(), v.get_yy(), v.get_zz(), color=(0, 1, 0),
-                    tube_radius=None)
+    mlab.plot3d(vectors[0].get_xx(), vectors[0].get_yy(), vectors[0].get_zz(),
+                color=(0, 1, 0), tube_radius=None)
 
     slices = []
     # obtenir les plans orthogonaux
@@ -124,7 +124,6 @@ if __name__ == '__main__':
     for res in residues:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0.5, 0, 0.5))
-
 
     a = slices[0].normal.end.x
     b = slices[0].normal.end.y
@@ -143,6 +142,10 @@ if __name__ == '__main__':
             print("Method must be 'ASA' or 'simple'")
         print(f"Score slice {s} : {sli.score}")
 
+    for res in slices[0].residues:
+        mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
+                      scale_factor=1, color=(0, 1, 0))
+
     mlab.show()
 
 # =============================================================================
@@ -153,7 +156,6 @@ if __name__ == '__main__':
 # =============================================================================
 
     print(max(slices))
-
 
     # obtenir les plans translatés
 # =============================================================================
@@ -166,16 +168,6 @@ if __name__ == '__main__':
 #     slices[0].compute_score()
 #     print(f"Score slice 0 : {slices[0].score}")
 # =============================================================================
-
-
-
-
-
-
-
-
-
-
 
     # TODO: pour le renvoi des résultats, ne pas oublier de translater
     # la membrane puisuqe le centre du repère a été déplacé sur le barycentre
