@@ -9,6 +9,7 @@ https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
 
 import math
 
+
 class Point:
 
     def __init__(self, x=0, y=0, z=0):
@@ -50,6 +51,7 @@ class Vector:
 
     def get_zz(self):
         return [self.start.z, self.end.z]
+
 
 class Sphere:
 
@@ -103,7 +105,7 @@ class Sphere:
                 x = self.radius * math.sin(theta) * math.cos(phi)
                 y = self.radius * math.sin(theta) * math.sin(phi)
                 z = self.radius * math.cos(theta)
-                if z>= 0:
+                if z >= 0:
                     self.surf_pts.append(Point(x, y, z))
         return len(self.surf_pts)
 
@@ -320,3 +322,9 @@ class Slice:
             self.thickness[0] += increment
         # TODO: gérer la maj automatique des résidus compris dans la membrane
         # et le calcul du score.
+
+
+class Protein():
+
+    def __init__(self, residues):
+        self.residues = residues

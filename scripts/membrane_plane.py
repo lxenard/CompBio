@@ -84,32 +84,14 @@ if __name__ == '__main__':
     sphere = ptn.Sphere()
     sphere.sample_surface(N_DIRECTIONS*2)
 
-    # Create a sphere
-    pi = np.pi
-    cos = np.cos
-    sin = np.sin
-    phi, theta = np.mgrid[0:pi:101j, 0:2 * pi:101j]
-
-# =============================================================================
-#     x = sin(phi)*cos(theta)
-#     y = sin(phi)*sin(theta)
-#     z = cos(phi)
-# =============================================================================
-
     mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(600, 600))
     mlab.clf()
 
-    #mlab.mesh(x , y , z, color=(0.0,0.5,0.5))
     mlab.points3d(0, 0, 0, scale_factor=0.1, color=(1, 0, 0))
     vectors = []
     for point in sphere.surf_pts:
         mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
-        v = ptn.Vector(point)
-# =============================================================================
-#         mlab.plot3d(v.get_xx(), v.get_yy(), v.get_zz(), color=(0, 0, 1),
-#                     tube_radius=None)
-# =============================================================================
-        vectors.append(v)
+        vectors.append(ptn.Vector(point))
     # mlab.show()
 
     mlab.plot3d(vectors[0].get_xx(), vectors[0].get_yy(), vectors[0].get_zz(),
