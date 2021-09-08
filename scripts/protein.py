@@ -9,6 +9,10 @@ https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
 
 import math
 
+from Bio.PDB.DSSP import DSSP
+
+import settings as st
+
 
 class Point:
 
@@ -171,7 +175,31 @@ class Residue:
             return False
 
 
-class Slice:
+class Protein():
+
+    def __init__(self, structure, model=0, chain='A'):
+        self.structure = structure
+        self.model = model
+        self.chain = chain
+        self.residues = []
+        self.residues_exposed = []
+        self.find_exposed_residues()
+
+    def find_exposed_residues(self):
+
+        dssp = DSSP(self.structure[self.model], st.PDB)
+        for i_res, res in enumerate(self.structure[self.model][self.chain]):
+            # For simplification, the position of a residue is defined as the
+            # position of its Cα.
+            pt = Point(*res['CA'].coord)
+            asa = dssp[(self.chain, i_res+1)][3]  # Accessible surface area.
+            tmp = Residue(res.id[1], res.resname, pt, asa)
+            if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
+                self.residues_exposed.append(tmp)
+            self.residues.append(tmp)
+
+
+class Slice(Protein):
 
     def __init__(self, center, normal):
         self.center = center
@@ -322,9 +350,3 @@ class Slice:
             self.thickness[0] += increment
         # TODO: gérer la maj automatique des résidus compris dans la membrane
         # et le calcul du score.
-
-
-class Protein():
-
-    def __init__(self, residues):
-        self.residues = residues

@@ -14,6 +14,7 @@ from Bio.PDB.DSSP import DSSP
 from mayavi import mlab
 import numpy as np
 
+import settings as st
 import protein as ptn
 
 
@@ -42,47 +43,58 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    # TODO: Argument à sortir par argparse
-    #pdb_path = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
-    pdb_path = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
-    model = 0
-    chain = 'A'
-    IS_EXPOSED_THRESHOLD = 0.3
-    DEBUG = False
-    N_DIRECTIONS = 20  # nb de points pour échantillonner la demi-sphère
+    st.init()
+
+# =============================================================================
+#     # TODO: Argument à sortir par argparse
+#     pdb_path = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
+#     #pdb_path = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
+#     model = 0
+#     chain = 'A'
+#     IS_EXPOSED_THRESHOLD = 0.3
+#     DEBUG = False
+#     N_DIRECTIONS = 20  # nb de points pour échantillonner la demi-sphère
+# =============================================================================
 
     # Opening and parsing of the PDB file.
     p = PDBParser()
-    ptn_id = Path(pdb_path).stem
-    structure = p.get_structure(ptn_id, pdb_path)
-    dssp = DSSP(structure[model], pdb_path)
+    ptn_id = Path(st.PDB).stem
+    structure = p.get_structure(ptn_id, st.PDB)
 
-    # Selection of the exposed residues.
-    # For better results, the burrowed residues are not taken into account
-    # during the membrane detection.
-    # TODO: à vérifier en comparant les résultats avec le traitement de tous
-    # les résidus
-    residues = []  # Store the exposed residues.
-    for i_res, res in enumerate(structure[model][chain]):
-        # For simplification, the position of a residue is defined as the
-        # position of its Cα.
-        pt = ptn.Point(*res['CA'].coord)
-        asa = dssp[(chain, i_res+1)][3]  # Accessible surface area.
-        tmp = ptn.Residue(res.id[1], res.resname, pt, asa)
-        if tmp.is_exposed(IS_EXPOSED_THRESHOLD):
-            residues.append(tmp)
+
+    prot = ptn.Protein(structure, st.MODEL, st.CHAIN)
+
+# =============================================================================
+#     dssp = DSSP(structure[st.MODEL], st.PDB)
+#
+#     # Selection of the exposed residues.
+#     # For better results, the burrowed residues are not taken into account
+#     # during the membrane detection.
+#     # TODO: à vérifier en comparant les résultats avec le traitement de tous
+#     # les résidus
+#     residues = []  # Store the exposed residues.
+#     for i_res, res in enumerate(structure[st.MODEL][st.CHAIN]):
+#         # For simplification, the position of a residue is defined as the
+#         # position of its Cα.
+#         pt = ptn.Point(*res['CA'].coord)
+#         asa = dssp[(st.CHAIN, i_res+1)][3]  # Accessible surface area.
+#         tmp = ptn.Residue(res.id[1], res.resname, pt, asa)
+#         if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
+#             residues.append(tmp)
+# =============================================================================
 
     # Place the center of the coordinate system at the residues barycenter.
-    bary = ptn.Point(*barycenter(residues))
-    if DEBUG:
+    # TODO: basculer la création du Point dans la fonction barycenter
+    bary = ptn.Point(*barycenter(prot.residues_exposed))
+    if st.DEBUG:
         print(f"Barycenter: {bary}")
-    for res in residues:
+    for res in prot.residues_exposed:
         res.coord -= bary
 
     # Sample the space in roughly N_DIRECTIONS vectors all passing by the
     # center of the coordinate system center.
     sphere = ptn.Sphere()
-    sphere.sample_surface(N_DIRECTIONS*2)
+    sphere.sample_surface(st.N_DIRECTIONS*2)
 
     mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(600, 600))
     mlab.clf()
@@ -103,7 +115,7 @@ if __name__ == '__main__':
         s = ptn.Slice(0, v)
         slices.append(s)
 
-    for res in residues:
+    for res in prot.residues_exposed:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0.5, 0, 0.5))
 
@@ -117,7 +129,7 @@ if __name__ == '__main__':
     mlab.surf(x, y, zz)
 
     for s, sli in enumerate(slices):
-        sli.find_residues(residues)
+        sli.find_residues(prot.residues_exposed)
         try:
             sli.compute_score()
         except ValueError:
