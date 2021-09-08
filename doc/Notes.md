@@ -49,7 +49,7 @@ facteur straightness = fréquence relative des résidus droits dans dans une tra
 facteur turn = 1 - fréquence relative des résidus 'turn' dans une tranche
 facteur end-chain = 1 - fréquence relative des résidus de fin de chaîne dans une tranche
 
-fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice) 
+fo() = mean(facteur d'hydrophobicité * facteur de structure pour chaque slice)
 
 ## Results
 
@@ -121,7 +121,7 @@ https://swift.cmbi.umcn.nl/gv/dssp/
 
 ## Implémentation
 
-### Constantes 
+### Constantes
 
 N_DIRECTIONS nb de points pour échantillonner la demi-sphère
 SLIDING_WINDOW_SIZE incrément pour la fenêtre glissante
@@ -251,3 +251,4 @@ organisation : conda, POO, github
 pseudo code ou schéma en annexe
 
 https://www.quora.com/Given-a-point-and-a-plane-how-would-you-determine-which-side-of-the-plane-the-point-lies
+https://stackoverflow.com/questions/13034496/using-global-variables-between-files

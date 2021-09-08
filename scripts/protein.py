@@ -181,12 +181,19 @@ class Protein():
         self.structure = structure
         self.model = model
         self.chain = chain
-        self.residues = []
+        self.residues_burrowed = []
         self.residues_exposed = []
         self.find_exposed_residues()
 
     def find_exposed_residues(self):
+        """
+        Find the residues exposed to solvent or membrane.
 
+        Returns
+        -------
+        None.
+
+        """
         dssp = DSSP(self.structure[self.model], st.PDB)
         for i_res, res in enumerate(self.structure[self.model][self.chain]):
             # For simplification, the position of a residue is defined as the
@@ -196,17 +203,41 @@ class Protein():
             tmp = Residue(res.id[1], res.resname, pt, asa)
             if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
                 self.residues_exposed.append(tmp)
-            self.residues.append(tmp)
+            else:
+                # Also save burrowed residues in case they are needed later.
+                self.residues_burrowed.append(tmp)
+
+    def move(self, shift):
+        """
+
+
+        Parameters
+        ----------
+        shift : Point
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        for res in self.residues_exposed:
+            res.coord -= shift
+        for res in self.residues_burrowed:
+            res.coord -= shift
+
 
 
 class Slice(Protein):
 
-    def __init__(self, center, normal):
+    def __init__(self, center, normal, structure, model=0, chain='A'):
+        Protein.__init__(self, structure, model, chain)
         self.center = center
         self.normal = normal
         self.thickness = [7, 7]
         self.residues = []
         self.score = 0
+
 
     def __repr__(self):
         thickness = sum(self.thickness)
@@ -238,21 +269,18 @@ class Slice(Protein):
         else:
             return False
 
-    def find_residues(self, residues):
+    def find_residues(self):
         """
-        From a list of Residues, find those which are inside the Slice.
-
-        Parameters
-        ----------
-        residues : list(Residue)
-            The Residues to be checked.
+        From the exposed Residues of the Protein, find those which are
+        inside the Slice.
 
         Returns
         -------
-        None.
+        int
+            Number of exposed Residues inside the Slice.
 
         """
-        for res in residues:
+        for res in self.residues_exposed:
 
             # Normal vector.
             a = self.normal.end.x
@@ -271,6 +299,8 @@ class Slice(Protein):
             # The residues between the 2 planes are inside the Slice.
             if a*x + b*y + c*z >= d1 and a*x + b*y + c*z <= d2:
                 self.residues.append(res)
+
+        return len(self.residues)
 
     def compute_score(self, method='ASA'):
         """

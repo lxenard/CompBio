@@ -18,6 +18,7 @@ import settings as st
 import protein as ptn
 
 
+
 def barycenter(residues_list):
     """
     Compute the barycenter of a list of residues.
@@ -36,63 +37,33 @@ def barycenter(residues_list):
     x_bary = sum([r.coord.x for r in residues_list]) / len(residues_list)
     y_bary = sum([r.coord.y for r in residues_list]) / len(residues_list)
     z_bary = sum([r.coord.z for r in residues_list]) / len(residues_list)
-    return x_bary, y_bary, z_bary
+    return ptn.Point(x_bary, y_bary, z_bary)
 
 
 if __name__ == '__main__':
 
     start = time.time()
 
-    st.init()
-
-# =============================================================================
-#     # TODO: Argument à sortir par argparse
-#     pdb_path = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
-#     #pdb_path = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
-#     model = 0
-#     chain = 'A'
-#     IS_EXPOSED_THRESHOLD = 0.3
-#     DEBUG = False
-#     N_DIRECTIONS = 20  # nb de points pour échantillonner la demi-sphère
-# =============================================================================
+    st.init()  # Set the global parameters.
 
     # Opening and parsing of the PDB file.
     p = PDBParser()
     ptn_id = Path(st.PDB).stem
     structure = p.get_structure(ptn_id, st.PDB)
-
-
     prot = ptn.Protein(structure, st.MODEL, st.CHAIN)
 
-# =============================================================================
-#     dssp = DSSP(structure[st.MODEL], st.PDB)
-#
-#     # Selection of the exposed residues.
-#     # For better results, the burrowed residues are not taken into account
-#     # during the membrane detection.
-#     # TODO: à vérifier en comparant les résultats avec le traitement de tous
-#     # les résidus
-#     residues = []  # Store the exposed residues.
-#     for i_res, res in enumerate(structure[st.MODEL][st.CHAIN]):
-#         # For simplification, the position of a residue is defined as the
-#         # position of its Cα.
-#         pt = ptn.Point(*res['CA'].coord)
-#         asa = dssp[(st.CHAIN, i_res+1)][3]  # Accessible surface area.
-#         tmp = ptn.Residue(res.id[1], res.resname, pt, asa)
-#         if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
-#             residues.append(tmp)
-# =============================================================================
-
+    # For better results, the burrowed residues are not taken into account
+    # during the membrane detection, only the exposed ones.
+    # TODO: à vérifier en comparant les résultats avec le traitement de tous
+    # les résidus
     # Place the center of the coordinate system at the residues barycenter.
-    # TODO: basculer la création du Point dans la fonction barycenter
-    bary = ptn.Point(*barycenter(prot.residues_exposed))
+    bary = barycenter(prot.residues_exposed)
     if st.DEBUG:
         print(f"Barycenter: {bary}")
-    for res in prot.residues_exposed:
-        res.coord -= bary
+    prot.move(bary)
 
     # Sample the space in roughly N_DIRECTIONS vectors all passing by the
-    # center of the coordinate system center.
+    # center of the coordinate system.
     sphere = ptn.Sphere()
     sphere.sample_surface(st.N_DIRECTIONS*2)
 
@@ -106,22 +77,27 @@ if __name__ == '__main__':
         vectors.append(ptn.Vector(point))
     # mlab.show()
 
-    mlab.plot3d(vectors[0].get_xx(), vectors[0].get_yy(), vectors[0].get_zz(),
+    to_draw = 8
+
+    mlab.plot3d(vectors[to_draw].get_xx(), vectors[to_draw].get_yy(), vectors[to_draw].get_zz(),
                 color=(0, 1, 0), tube_radius=None)
 
     slices = []
     # obtenir les plans orthogonaux
     for v in vectors:
-        s = ptn.Slice(0, v)
+        # TODO: a la création d'une slice les résidues de la prot sont
+        # recalculées sans prendre en compte le shift
+        # => revoir les classes slice / prot
+        s = ptn.Slice(0, v, structure, st.MODEL, st.CHAIN)
         slices.append(s)
 
     for res in prot.residues_exposed:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0.5, 0, 0.5))
 
-    a = slices[0].normal.end.x
-    b = slices[0].normal.end.y
-    c = slices[0].normal.end.z
+    a = slices[to_draw].normal.end.x
+    b = slices[to_draw].normal.end.y
+    c = slices[to_draw].normal.end.z
     x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
     z = (-a*x - b*y + -7) / c
     zz = (-a*x - b*y + 7) / c
@@ -129,14 +105,18 @@ if __name__ == '__main__':
     mlab.surf(x, y, zz)
 
     for s, sli in enumerate(slices):
-        sli.find_residues(prot.residues_exposed)
-        try:
-            sli.compute_score()
-        except ValueError:
-            print("Method must be 'ASA' or 'simple'")
-        print(f"Score slice {s} : {sli.score}")
+        n = sli.find_residues()
+        print(n)
+# =============================================================================
+#         try:
+#             # traiter le cas où il n'y a aucun résidus dans la tranche
+#             sli.compute_score()
+#         except ValueError:
+#             print("Method must be 'ASA' or 'simple'")
+#         print(f"Score slice {s} : {sli.score}")
+# =============================================================================
 
-    for res in slices[0].residues:
+    for res in slices[to_draw].residues:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 0))
 
