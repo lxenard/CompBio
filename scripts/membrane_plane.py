@@ -60,33 +60,27 @@ if __name__ == '__main__':
         print(f"Barycenter: {bary}")
     prot.move(bary)
 
-    # Sample the space in roughly N_DIRECTIONS vectors all passing by the
-    # center of the coordinate system.
-    sphere = ptn.Sphere()
-    sphere.sample_surface(st.N_DIRECTIONS*2)
-
     mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(600, 600))
     mlab.clf()
 
     mlab.points3d(0, 0, 0, scale_factor=0.8, color=(1, 0, 0))
-    vectors = []
-    for point in sphere.surf_pts:
-        #mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
-        vectors.append(ptn.Vector(point))
+# =============================================================================
+#     vectors = []
+#     for point in sphere.surf_pts:
+#         #mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
+#         vectors.append(ptn.Vector(point))
+# =============================================================================
     # mlab.show()
 
     to_draw = 10
 
-    mlab.plot3d(vectors[to_draw].get_xx(), vectors[to_draw].get_yy(), vectors[to_draw].get_zz(),
+    mlab.plot3d(prot.vectors[to_draw].get_xx(), prot.vectors[to_draw].get_yy(), prot.vectors[to_draw].get_zz(),
                 color=(0, 1, 0), tube_radius=None)
 
     slices = []
     # obtenir les plans orthogonaux
-    for v in vectors:
-        # TODO: a la création d'une slice les résidues de la prot sont
-        # recalculées sans prendre en compte le shift
-        # => revoir les classes slice / prot
-        s = ptn.Slice(prot, 0, v)
+    for v in prot.vectors:
+        s = ptn.Slice(prot, 0, v, 'ASA')
         slices.append(s)
 
     # Drawing all the exposed residues of the protein.
@@ -103,44 +97,15 @@ if __name__ == '__main__':
     mlab.surf(x, y, z)
     mlab.surf(x, y, zz)
 
-    for s, sli in enumerate(slices):
-        n = sli.find_residues()
-        print(n)
-# =============================================================================
-#         try:
-#             # traiter le cas où il n'y a aucun résidus dans la tranche
-#             sli.compute_score()
-#         except ValueError:
-#             print("Method must be 'ASA' or 'simple'")
-#         print(f"Score slice {s} : {sli.score}")
-# =============================================================================
-
     for res in slices[to_draw].residues:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 0))
 
     mlab.show()
 
-# =============================================================================
-#     for s, sli in enumerate(slices):
-#         sli.find_residues(residues)
-#         sli.compute_score()
-#         print(f"Score slice {s} : {sli.score}")
-# =============================================================================
-
     print(max(slices))
 
     # obtenir les plans translatés
-# =============================================================================
-#     slices[0].find_residues(residues)
-#     for res in slices[0].residues:
-#         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
-#                       scale_factor=1.1, color=(0, 1, 0))
-#
-#     mlab.show()
-#     slices[0].compute_score()
-#     print(f"Score slice 0 : {slices[0].score}")
-# =============================================================================
 
     # TODO: pour le renvoi des résultats, ne pas oublier de translater
     # la membrane puisuqe le centre du repère a été déplacé sur le barycentre

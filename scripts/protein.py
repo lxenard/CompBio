@@ -41,7 +41,7 @@ class Vector:
 
     start = Point(0, 0, 0)
 
-    def __init__(self, end=Point(0, 0, 0)):
+    def __init__(self, end):
         self.end = end
 
     def __repr__(self):
@@ -181,9 +181,28 @@ class Protein():
         self.structure = structure
         self.model = model
         self.chain = chain
+
+        self.vectors = []
+        self.sample_space()
+
         self.residues_burrowed = []
         self.residues_exposed = []
         self.find_exposed_residues()
+
+    def sample_space(self):
+        """
+        Sample the space in roughly N_DIRECTIONS vectors all passing by
+        the center of the coordinate system.
+
+        Returns
+        -------
+        None.
+
+        """
+        sphere = Sphere()
+        sphere.sample_surface(st.N_DIRECTIONS*2)
+        for point in sphere.surf_pts:
+            self.vectors.append(Vector(point))
 
     def find_exposed_residues(self):
         """
@@ -229,19 +248,28 @@ class Protein():
 
 class Slice():
 
-    def __init__(self, protein, center, normal):
+    def __init__(self, protein, center, normal, method='ASA'):
         self.protein = protein
         self.center = center
         self.normal = normal
+        self.score_method = method
         self.thickness = [7, 7]
         self.residues = []
         self.score = 0
+        n_res = self.find_residues()
+        # If there's no residues in the slice, no need to update the score.
+        if n_res != 0:
+            try:
+                self.compute_score()
+            except ValueError:
+                print("Method must be 'ASA' or 'simple'")
 
     def __repr__(self):
         thickness = sum(self.thickness)
         nb_residues = len(self.residues)
         return (f"(center: {self.center}, normal: {self.normal},"
-                f"thickness: {thickness}, nb_residues: {nb_residues})")
+                f"thickness: {thickness}, nb_residues: {nb_residues},"
+                f"score)")
 
     def __lt__(self, other):
         if self.score < other.score:
@@ -325,8 +353,6 @@ class Slice():
         None.
 
         """
-        # TODO: gérer le cas où les résidus n'ont pas encore été cherchés
-
         if method != 'ASA' and method != 'simple':
             raise ValueError
 
