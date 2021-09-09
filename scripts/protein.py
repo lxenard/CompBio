@@ -227,17 +227,15 @@ class Protein():
             res.coord -= shift
 
 
+class Slice():
 
-class Slice(Protein):
-
-    def __init__(self, center, normal, structure, model=0, chain='A'):
-        Protein.__init__(self, structure, model, chain)
+    def __init__(self, protein, center, normal):
+        self.protein = protein
         self.center = center
         self.normal = normal
         self.thickness = [7, 7]
         self.residues = []
         self.score = 0
-
 
     def __repr__(self):
         thickness = sum(self.thickness)
@@ -280,7 +278,7 @@ class Slice(Protein):
             Number of exposed Residues inside the Slice.
 
         """
-        for res in self.residues_exposed:
+        for res in self.protein.residues_exposed:
 
             # Normal vector.
             a = self.normal.end.x

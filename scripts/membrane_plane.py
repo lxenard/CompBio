@@ -5,18 +5,16 @@ Created on Sun Sep  5 16:56:22 2021
 @author: Laura Xénard
 """
 
-import argparse
+
 from pathlib import Path
 import time
 
 from Bio.PDB import PDBParser
-from Bio.PDB.DSSP import DSSP
 from mayavi import mlab
 import numpy as np
 
-import settings as st
 import protein as ptn
-
+import settings as st
 
 
 def barycenter(residues_list):
@@ -70,14 +68,14 @@ if __name__ == '__main__':
     mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(600, 600))
     mlab.clf()
 
-    mlab.points3d(0, 0, 0, scale_factor=0.1, color=(1, 0, 0))
+    mlab.points3d(0, 0, 0, scale_factor=0.8, color=(1, 0, 0))
     vectors = []
     for point in sphere.surf_pts:
-        mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
+        #mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
         vectors.append(ptn.Vector(point))
     # mlab.show()
 
-    to_draw = 8
+    to_draw = 10
 
     mlab.plot3d(vectors[to_draw].get_xx(), vectors[to_draw].get_yy(), vectors[to_draw].get_zz(),
                 color=(0, 1, 0), tube_radius=None)
@@ -88,9 +86,10 @@ if __name__ == '__main__':
         # TODO: a la création d'une slice les résidues de la prot sont
         # recalculées sans prendre en compte le shift
         # => revoir les classes slice / prot
-        s = ptn.Slice(0, v, structure, st.MODEL, st.CHAIN)
+        s = ptn.Slice(prot, 0, v)
         slices.append(s)
 
+    # Drawing all the exposed residues of the protein.
     for res in prot.residues_exposed:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0.5, 0, 0.5))
