@@ -15,7 +15,28 @@ import settings as st
 
 
 class Point:
+    """
+    Represent a point in 3D space.
 
+    Parameters
+    ----------
+    x : float, optional
+        The x coordinate. The default is 0.
+    y : float, optional
+        The y coordinate. The default is 0.
+    z : float, optional
+        The z coordinate. The default is 0.
+
+    Attributes
+    ----------
+    x : float
+        The x coordinate.
+    y : float
+        The y coordinate.
+    z : float
+        The z coordinate.
+
+    """
     def __init__(self, x=0, y=0, z=0):
         self.x = x
         self.y = y
@@ -48,8 +69,8 @@ class Point:
 
         Returns
         -------
-        x_bary, y_bary, z_bary : (float, float, float)
-            Respectively x, y and z coordinates of the residues barycenter.
+        Point
+            The barycenter of the Residues.
 
         """
         x_bary = sum([r.coord.x for r in residues_list]) / len(residues_list)
@@ -59,7 +80,22 @@ class Point:
 
 
 class Vector:
+    """
+    Represent a vector in 3D space.
 
+    Parameters
+    ----------
+    end : Point
+        The end point of the vector.
+
+    Attributes
+    ----------
+    start : Point
+        The start point of the vector.
+    end : Point
+        The end point of the vector.
+
+    """
     start = Point(0, 0, 0)
 
     def __init__(self, end):
@@ -79,7 +115,24 @@ class Vector:
 
 
 class Sphere:
+    """
+    Represent a sphere in 3D space.
 
+    Parameters
+    ----------
+    radius : int, optional
+            Radius of the sphere. The default is 1.
+
+    Attributes
+    ----------
+    origin : Point
+        The center of the sphere.
+    radius : int, optional
+            Radius of the sphere. The default is 1.
+    surf_pts : list(Point)
+            Points on the surface of the Sphere.
+
+    """
     origin = Point(0, 0, 0)
 
     def __init__(self, radius=1):
@@ -88,17 +141,15 @@ class Sphere:
 
     def sample_surface(self, nb):
         """
-        Generate around 'nb' equidistributed Points on the surface of the
-        demi z-positive Sphere.
-        This code implements the Deserno algorithm:
-        https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
-        and is based on dinob0t's code:
-        https://gist.github.com/dinob0t/9597525
+        Generate equidistributed Points on the surface of the demi Sphere.
+
+        The Points are generated on the z-positive part of the Sphere.
 
         Parameters
         ----------
         nb : int
-            Number of Points to be generated.
+            The ideal number of Points to be generated. In some cases, less
+            Points might be generated.
 
         Raises
         ------
@@ -111,6 +162,13 @@ class Sphere:
         int
             The number of Points that have been generated. It may not be
             exactly equal to 'nb' but should be close to it.
+
+        Notes
+        -----
+        This code implements the Deserno algorithm:
+        https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
+        and is based on dinob0t's code:
+        https://gist.github.com/dinob0t/9597525
 
         """
         if nb <= 0:
@@ -136,7 +194,16 @@ class Sphere:
 
 
 class Residue:
+    """
+    TODO
 
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    """
     def __init__(self, num=0, aa='', p=Point(), asa=0):
         self.num = num
         self.aa = aa
@@ -174,8 +241,7 @@ class Residue:
 
     def is_exposed(self, threshold=0.3):
         """
-        Determine if the residue is exposed to solvent or membrane, or if
-        it is burrowed in the protein.
+        Determine if the residue is exposed to solvent or burrowed.
 
         Parameters
         ----------
@@ -197,7 +263,16 @@ class Residue:
 
 
 class Protein():
+    """
+    TODO
 
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    """
     def __init__(self, structure, model=0, chain='A'):
         self.structure = structure
         self.model = model
@@ -212,8 +287,9 @@ class Protein():
 
     def sample_space(self):
         """
-        Sample the space in roughly N_DIRECTIONS vectors all passing by
-        the center of the coordinate system.
+        Sample the space in several vectors.
+
+        All the vectors pass by the center of the coordinate system.
 
         Returns
         -------
@@ -249,7 +325,7 @@ class Protein():
 
     def move(self, shift):
         """
-
+        TODO
 
         Parameters
         ----------
@@ -268,7 +344,24 @@ class Protein():
 
 
 class Slice():
+    """
+    TODO
 
+    Parameters
+    ----------
+    protein : TYPE
+        DESCRIPTION.
+    center : TYPE
+        DESCRIPTION.
+    normal : TYPE
+        DESCRIPTION.
+    method : TYPE, optional
+        DESCRIPTION. The default is 'ASA'.
+
+    Attributes
+    ----------
+
+    """
     def __init__(self, protein, center, normal, method='ASA'):
         self.protein = protein
         self.center = center
@@ -318,8 +411,7 @@ class Slice():
 
     def find_residues(self):
         """
-        From the exposed Residues of the Protein, find those which are
-        inside the Slice.
+        Find the exposed Residues that are inside the Slice.
 
         Returns
         -------
@@ -351,9 +443,10 @@ class Slice():
 
     def compute_score(self, method='ASA'):
         """
-        Compute the score of the Slice. The higher the score the more
-        probable it is that the Slice represents the position of the
-        membrane.
+        Compute the membrane score of the Slice.
+
+        The higher the score the more probable it is that the Slice
+        represents the position of a membrane.
 
         Parameters
         ----------
