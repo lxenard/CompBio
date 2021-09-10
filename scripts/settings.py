@@ -24,7 +24,7 @@ def init():
         parser.add_argument("-t", "--threshold", type=float, default=0.3,
                             help=("ASA threshold from which residues are considered "
                                   "as exposed to solvent or membrane"))
-        parser.add_argument("-n", "--ndir", type=int, default=20,
+        parser.add_argument("-n", "--ndir", type=int, default=100,
                             help=("number of directions for sampling the space when "
                                   "looking for membrane plane"))
         parser.add_argument("-d", "--debug", action="store_true",
@@ -50,6 +50,6 @@ def init():
         MODEL = 0
         CHAIN = 'A'
         IS_EXPOSED_THRESHOLD = 0.3
-        N_DIRECTIONS = 20
+        N_DIRECTIONS = 100
         DEBUG = False
         VERBOSE = False

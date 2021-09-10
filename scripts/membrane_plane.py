@@ -69,14 +69,16 @@ if __name__ == '__main__':
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0.5, 0, 0.5))
 
-    a = centered_slices[to_draw].normal.end.x
-    b = centered_slices[to_draw].normal.end.y
-    c = centered_slices[to_draw].normal.end.z
-    x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
-    z = (-a*x - b*y + -7) / c
-    zz = (-a*x - b*y + 7) / c
-    mlab.surf(x, y, z)
-    mlab.surf(x, y, zz)
+# =============================================================================
+#     a = centered_slices[to_draw].normal.end.x
+#     b = centered_slices[to_draw].normal.end.y
+#     c = centered_slices[to_draw].normal.end.z
+#     x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
+#     z = (-a*x - b*y + -7) / c
+#     zz = (-a*x - b*y + 7) / c
+#     mlab.surf(x, y, z)
+#     mlab.surf(x, y, zz)
+# =============================================================================
 
 # =============================================================================
 #     for res in centered_slices[to_draw].residues:
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     print(np.argmax(centered_slices))
 
     # obtenir tous les plans (translatés + centrés)
-    shift = 10
+    shift = 1
     translated_slices = []
     for sli in centered_slices:
 
@@ -114,15 +116,19 @@ if __name__ == '__main__':
 
     print(max(translated_slices))
     print(np.argmax(translated_slices))
-    best = np.argmax(translated_slices)
+    best = np.argmin(translated_slices)
 
-    todraw = best
+    slices_sorted = sorted(itertools.chain(centered_slices, translated_slices), reverse=True)
+    best2 = next(((i, sli) for i, sli in enumerate(slices_sorted) if sli.score < 1), None)
+    print(best2)
 
-    shift = translated_slices[todraw].center
-    thickness = translated_slices[todraw].thickness
-    a = translated_slices[todraw].normal.end.x
-    b = translated_slices[todraw].normal.end.y
-    c = translated_slices[todraw].normal.end.z
+    to_draw = best2[0]
+
+    shift = slices_sorted[to_draw].center
+    thickness = slices_sorted[to_draw].thickness
+    a = slices_sorted[to_draw].normal.end.x
+    b = slices_sorted[to_draw].normal.end.y
+    c = slices_sorted[to_draw].normal.end.z
     x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
     z = (-a*x - b*y - thickness[0] + shift) / c
     zz = (-a*x - b*y + thickness[1] + shift) / c
@@ -137,11 +143,17 @@ if __name__ == '__main__':
 #     print(len(translated_slices[4].residues))
 # =============================================================================
 
-    for res in translated_slices[todraw].residues:
+    for res in slices_sorted[to_draw].residues:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 1))
 
-    mlab.show()
+    #mlab.show()
+
+    for res in slices_sorted[to_draw].residues:
+        print(res.num, res.aa)
+
+
+
 
 # =============================================================================
 #     for sli in translated_slices:

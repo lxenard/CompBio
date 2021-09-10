@@ -472,16 +472,21 @@ class Slice():
 
         if method == 'ASA':
             hydrophobic_asa = 0
-            total_asa = 0
+            total_asa_slice = 0
+            total_asa_prot = 0
+
+            for res in self.protein.residues_exposed:
+                total_asa_prot += res.asa
+
             for res in self.residues:
                 try:
                     if res.is_hydrophobic():
                         hydrophobic_asa += res.asa
-                    total_asa += res.asa
+                    total_asa_slice += res.asa
                 except ValueError:
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")
-            self.score = hydrophobic_asa / total_asa
+            self.score = hydrophobic_asa / total_asa_slice
 
         elif method == 'simple':
             cpt = 0
