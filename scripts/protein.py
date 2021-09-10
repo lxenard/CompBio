@@ -273,10 +273,22 @@ class Protein():
     ----------
 
     """
-    def __init__(self, structure, model=0, chain='A'):
+    def __init__(self, structure, model=0, chain='A', first_residue=None):
         self.structure = structure
         self.model = model
         self.chain = chain
+
+        ids = [d.get_id()[1] for d in structure[0][chain]]
+        if first_residue is None:
+            self.res_ids_pdb = ids
+        else:
+            try:
+                first_index = ids.index(first_residue)
+                self.res_ids_pdb = ids[first_index:]
+            except ValueError:
+                print()
+            # TODO : gérer l'erreur
+
 
         self.vectors = []
         self.sample_space()
@@ -311,11 +323,13 @@ class Protein():
 
         """
         dssp = DSSP(self.structure[self.model], st.PDB)
-        for i_res, res in enumerate(self.structure[self.model][self.chain]):
+        #i_res = self.res_ids_pdb[0]
+        ids = self.res_ids_pdb
+        for i_res, res in zip(ids, self.structure[self.model][self.chain]):
             # For simplification, the position of a residue is defined as the
             # position of its Cα.
             pt = Point(*res['CA'].coord)
-            asa = dssp[(self.chain, i_res+1)][3]  # Accessible surface area.
+            asa = dssp[(self.chain, i_res)][3]  # Accessible surface area.
             tmp = Residue(res.id[1], res.resname, pt, asa)
             if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
                 self.residues_exposed.append(tmp)

@@ -28,7 +28,14 @@ if __name__ == '__main__':
     p = PDBParser()
     ptn_id = Path(st.PDB).stem
     structure = p.get_structure(ptn_id, st.PDB)
-    prot = ptn.Protein(structure, st.MODEL, st.CHAIN)
+# =============================================================================
+#     derp = structure[0]['B']
+#     ids = [d.get_id()[1] for d in structure[0]['B']]
+#
+#     print(derp)
+# =============================================================================
+    prot = ptn.Protein(structure, st.MODEL, st.CHAIN, st.FIRST_RESIDUE)
+
 
     # For better results, the burrowed residues are not taken into account
     # during the membrane detection, only the exposed ones.
@@ -147,7 +154,7 @@ if __name__ == '__main__':
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 1))
 
-    #mlab.show()
+    mlab.show()
 
     for res in slices_sorted[to_draw].residues:
         print(res.num, res.aa)

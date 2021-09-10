@@ -33,22 +33,29 @@ def init():
                             help="increase output verbosity")
         args = parser.parse_args()
 
-        global PDB, MODEL, CHAIN, IS_EXPOSED_THRESHOLD, N_DIRECTIONS
+        global PDB, MODEL, CHAIN, FIRST_RESIDUE
+        global IS_EXPOSED_THRESHOLD, N_DIRECTIONS
         global DEBUG, VERBOSE
         PDB = args.pdb
         MODEL = args.model
         CHAIN = args.chain
+        FIRST_RESIDUE = 0
         IS_EXPOSED_THRESHOLD = args.threshold
         N_DIRECTIONS = args.ndir
         DEBUG = args.debug
         VERBOSE = args.verbose
+        # TODO rajouter un argument optionnel pour prendre le premier résidu
+        # si non renseigner aller le chercher
+        # faire de même pour la fin ?
 
         # print(args.verbose)
     else:
         PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
+        PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/6g79.pdb'
         #PDB = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
         MODEL = 0
-        CHAIN = 'A'
+        CHAIN = 'S'
+        FIRST_RESIDUE = None
         IS_EXPOSED_THRESHOLD = 0.3
         N_DIRECTIONS = 100
         DEBUG = False
