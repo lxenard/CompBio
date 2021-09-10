@@ -36,6 +36,27 @@ class Point:
         z = self.z - p.z
         return Point(x, y, z)
 
+    @classmethod
+    def barycenter(cls, residues_list):
+        """
+        Compute the barycenter of a list of residues.
+
+        Parameters
+        ----------
+        residues_list : list(ptn.Residues)
+            The residues from which to find the barycenter.
+
+        Returns
+        -------
+        x_bary, y_bary, z_bary : (float, float, float)
+            Respectively x, y and z coordinates of the residues barycenter.
+
+        """
+        x_bary = sum([r.coord.x for r in residues_list]) / len(residues_list)
+        y_bary = sum([r.coord.y for r in residues_list]) / len(residues_list)
+        z_bary = sum([r.coord.z for r in residues_list]) / len(residues_list)
+        return Point(x_bary, y_bary, z_bary)
+
 
 class Vector:
 

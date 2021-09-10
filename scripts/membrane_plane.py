@@ -17,26 +17,6 @@ import protein as ptn
 import settings as st
 
 
-def barycenter(residues_list):
-    """
-    Compute the barycenter of a list of residues.
-
-    Parameters
-    ----------
-    residues_list : list(ptn.Residues)
-        The residues from which to find the barycenter.
-
-    Returns
-    -------
-    x_bary, y_bary, z_bary : (float, float, float)
-        Respectively x, y and z coordinates of the residues barycenter.
-
-    """
-    x_bary = sum([r.coord.x for r in residues_list]) / len(residues_list)
-    y_bary = sum([r.coord.y for r in residues_list]) / len(residues_list)
-    z_bary = sum([r.coord.z for r in residues_list]) / len(residues_list)
-    return ptn.Point(x_bary, y_bary, z_bary)
-
 
 if __name__ == '__main__':
 
@@ -55,7 +35,7 @@ if __name__ == '__main__':
     # TODO: à vérifier en comparant les résultats avec le traitement de tous
     # les résidus
     # Place the center of the coordinate system at the residues barycenter.
-    bary = barycenter(prot.residues_exposed)
+    bary = ptn.Point.barycenter(prot.residues_exposed)
     if st.DEBUG:
         print(f"Barycenter: {bary}")
     prot.move(bary)
@@ -74,11 +54,12 @@ if __name__ == '__main__':
 
     to_draw = 10
 
-    mlab.plot3d(prot.vectors[to_draw].get_xx(), prot.vectors[to_draw].get_yy(), prot.vectors[to_draw].get_zz(),
-                color=(0, 1, 0), tube_radius=None)
+    mlab.plot3d(prot.vectors[to_draw].get_xx(), prot.vectors[to_draw].get_yy(),
+                prot.vectors[to_draw].get_zz(), color=(0, 1, 0),
+                tube_radius=None)
 
     slices = []
-    # obtenir les plans orthogonaux
+    # obtenir les plans orthogonaux centrés sur l'origine
     for v in prot.vectors:
         s = ptn.Slice(prot, 0, v, 'ASA')
         slices.append(s)

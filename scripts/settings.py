@@ -45,8 +45,8 @@ def init():
 
         # print(args.verbose)
     else:
-        #PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
-        PDB = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
+        PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
+        #PDB = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
         MODEL = 0
         CHAIN = 'A'
         IS_EXPOSED_THRESHOLD = 0.3
