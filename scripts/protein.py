@@ -381,9 +381,9 @@ class Slice():
     def __repr__(self):
         thickness = sum(self.thickness)
         nb_residues = len(self.residues)
-        return (f"(center: {self.center}, normal: {self.normal},"
-                f"thickness: {thickness}, nb_residues: {nb_residues},"
-                f"score)")
+        return (f"(center: {self.center}, normal: {self.normal}, "
+                f"thickness: {thickness}, nb_residues: {nb_residues}, "
+                f"score: {self.score})")
 
     def __lt__(self, other):
         if self.score < other.score:
