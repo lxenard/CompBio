@@ -398,7 +398,7 @@ class Slice():
         # If there's no residues in the slice, no need to update the score.
         if n_res != 0:
             try:
-                self.compute_score()
+                self.compute_score(self.score_method)
             except ValueError:
                 print("Method must be 'ASA' or 'simple'")
 
@@ -443,6 +443,7 @@ class Slice():
             Number of exposed Residues inside the Slice.
 
         """
+        self.residues = []
         for res in self.protein.residues_exposed:
 
             # Normal vector.
@@ -545,5 +546,14 @@ class Slice():
             self.thickness[1] += increment
         else:
             self.thickness[0] += increment
+
+        n_res = self.find_residues()
+        if n_res != 0:
+            try:
+                self.compute_score(self.score_method)
+            except ValueError:
+                print("Method must be 'ASA' or 'simple'")
+        else:
+            self.score = 0
         # TODO: gérer la maj automatique des résidus compris dans la membrane
         # et le calcul du score.
