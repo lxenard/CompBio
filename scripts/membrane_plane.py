@@ -154,7 +154,7 @@ if __name__ == '__main__':
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 1))
 
-    mlab.show()
+    #mlab.show()
 
     for res in slices_sorted[to_draw].residues:
         print(res.num, res.aa)

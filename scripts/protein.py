@@ -331,14 +331,21 @@ class Protein():
             # For simplification, the position of a residue is defined as the
             # position of its Cα.
             print(i_res, res)
-            pt = Point(*res['CA'].coord)
-            asa = dssp[(self.chain, i_res)][3]  # Accessible surface area.
-            tmp = Residue(res.id[1], res.resname, pt, asa)
-            if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
-                self.residues_exposed.append(tmp)
+            try:
+                pt = Point(*res['CA'].coord)
+            except KeyError:
+                print(f"WARNING: no Cα found for residue {i_res} "
+                      f"({res.resname}), meaning it's probably not a "
+                      "standard amino acid. Ignoring this residue for "
+                      "the rest of the analysis.")
             else:
-                # Also save burrowed residues in case they are needed later.
-                self.residues_burrowed.append(tmp)
+                asa = dssp[(self.chain, i_res)][3]  # Accessible surface area.
+                tmp = Residue(res.id[1], res.resname, pt, asa)
+                if tmp.is_exposed(st.IS_EXPOSED_THRESHOLD):
+                    self.residues_exposed.append(tmp)
+                else:
+                    # Save burrowed residues in case they are needed later.
+                    self.residues_burrowed.append(tmp)
 
     def move(self, shift):
         """
