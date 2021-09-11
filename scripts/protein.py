@@ -275,6 +275,7 @@ class Protein():
     """
     def __init__(self, structure, model=0, chain='A', first_residue=None):
         self.structure = structure
+        # TODO: gérer le cas ou le model ou la chain est inexistant
         self.model = model
         self.chain = chain
 
@@ -330,7 +331,6 @@ class Protein():
         for i_res, res in zip(ids, self.structure[self.model][self.chain]):
             # For simplification, the position of a residue is defined as the
             # position of its Cα.
-            print(i_res, res)
             try:
                 pt = Point(*res['CA'].coord)
             except KeyError:

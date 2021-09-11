@@ -28,14 +28,7 @@ if __name__ == '__main__':
     p = PDBParser()
     ptn_id = Path(st.PDB).stem
     structure = p.get_structure(ptn_id, st.PDB)
-# =============================================================================
-#     derp = structure[0]['B']
-#     ids = [d.get_id()[1] for d in structure[0]['B']]
-#
-#     print(derp)
-# =============================================================================
     prot = ptn.Protein(structure, st.MODEL, st.CHAIN, st.FIRST_RESIDUE)
-
 
     # For better results, the burrowed residues are not taken into account
     # during the membrane detection, only the exposed ones.
@@ -95,83 +88,57 @@ if __name__ == '__main__':
 
     #mlab.show()
 
-    print(max(centered_slices))
-    print(np.argmax(centered_slices))
-
-    # obtenir tous les plans (translatés + centrés)
+    # Translation of the centered slices along their normal vector to get
+    # all possible slices.
     shift = 1
-    translated_slices = []
+    slices = centered_slices.copy()
     for sli in centered_slices:
 
-        # Plans translated toward the end of the normal vector.
+        # Plans translated toward the end of the normal vector ('up').
         center = shift
         new_sli_up = ptn.Slice(prot, center, sli.normal, 'ASA')
         while len(new_sli_up.residues) != 0:
-            translated_slices.append(new_sli_up)
+            slices.append(new_sli_up)
             center += shift
             new_sli_up = ptn.Slice(prot, center, sli.normal, 'ASA')
 
-
-        # Plans translated toward the start of the normal vector.
+        # Plans translated toward the start of the normal vector ('down').
         center = -shift
         new_sli_down = ptn.Slice(prot, center, sli.normal, 'ASA')
         while len(new_sli_down.residues) != 0:
-            translated_slices.append(new_sli_down)
+            slices.append(new_sli_down)
             center -= shift
             new_sli_down = ptn.Slice(prot, center, sli.normal, 'ASA')
 
+    slices.sort(reverse=True)
+    best = next(((i, sli) for i, sli in enumerate(slices) if sli.score < 1), None)
+    assert best is not None, "All slices have a score of 1."
+    print(best)
+    for res in slices[best[0]].residues:
+        print(res.num, res.aa)
 
-    print(max(translated_slices))
-    print(np.argmax(translated_slices))
-    best = np.argmin(translated_slices)
-
-    slices_sorted = sorted(itertools.chain(centered_slices, translated_slices), reverse=True)
-    best2 = next(((i, sli) for i, sli in enumerate(slices_sorted) if sli.score < 1), None)
-    print(best2)
-
-    to_draw = best2[0]
-
-    shift = slices_sorted[to_draw].center
-    thickness = slices_sorted[to_draw].thickness
-    a = slices_sorted[to_draw].normal.end.x
-    b = slices_sorted[to_draw].normal.end.y
-    c = slices_sorted[to_draw].normal.end.z
-    x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
+    to_draw = best[0]
+    shift = slices[to_draw].center
+    thickness = slices[to_draw].thickness
+    a = slices[to_draw].normal.end.x
+    b = slices[to_draw].normal.end.y
+    c = slices[to_draw].normal.end.z
+    x, y = np.mgrid[-100:100:1000j, -100:100:1000j]
     z = (-a*x - b*y - thickness[0] + shift) / c
     zz = (-a*x - b*y + thickness[1] + shift) / c
     mlab.surf(x, y, z, color=(0, 0, 0.8))
     mlab.surf(x, y, zz, color=(0, 0, 0.8))
 
-# =============================================================================
-#     print(len(translated_slices[0].residues))
-#     print(len(translated_slices[1].residues))
-#     print(len(translated_slices[2].residues))
-#     print(len(translated_slices[3].residues))
-#     print(len(translated_slices[4].residues))
-# =============================================================================
-
-    for res in slices_sorted[to_draw].residues:
+    for res in slices[to_draw].residues:
         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
                       scale_factor=1, color=(0, 1, 1))
 
-    #mlab.show()
+    mlab.show()
 
-    for res in slices_sorted[to_draw].residues:
-        print(res.num, res.aa)
+    # Thickening the best slice until the score doesn't increase.
+    # Toward the end of the normal vector ('up').
+    # Toward the start of the normal vector ('down').
 
-
-
-
-# =============================================================================
-#     for sli in translated_slices:
-#         print(sli.normal)
-#         print(sli.center)
-# =============================================================================
-
-# =============================================================================
-#     for sli in itertools.chain(centered_slices, translated_slices):
-#         pass
-# =============================================================================
 
     # TODO: pour le renvoi des résultats, ne pas oublier de translater
     # la membrane puisuqe le centre du repère a été déplacé sur le barycentre

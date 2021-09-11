@@ -51,10 +51,10 @@ def init():
         # print(args.verbose)
     else:
         PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2n90.pdb'
-        PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/6g79.pdb'
+        #PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/6g79.pdb'
         #PDB = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
         MODEL = 0
-        CHAIN = 'S'
+        CHAIN = 'A'
         FIRST_RESIDUE = None
         IS_EXPOSED_THRESHOLD = 0.3
         N_DIRECTIONS = 100
