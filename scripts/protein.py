@@ -273,16 +273,30 @@ class Protein():
     ----------
 
     """
-    def __init__(self, structure, model=0, chain='A', first_residue=None):
+    def __init__(self, structure, model=0, chain='A', first_residue=None,
+                 last_residue=None):
         self.structure = structure
-        # TODO: gérer le cas ou le model ou la chain est inexistant
-        self.model = model
-        self.chain = chain
 
-        ids = [d.get_id()[1] for d in structure[0][chain]]
-        if first_residue is None:
-            self.res_ids_pdb = ids
+        models = [m.id for m in structure.get_models()]
+        if model in models:
+            self.model = model
         else:
+            self.model = models[0]
+            print(f"WARNING: model {model} does not exist. Using the first "
+                  f"model found instead which is {self.model}.")
+
+        chains = [c.id for c in structure[self.model].get_chains()]
+        if chain in chains:
+            self.chain = chain
+        else:
+            self.chain = chains[0]
+            print(f"WARNING: chain {chain} does not exist. Using the first "
+                  f"chain found instead which is {self.chain}.")
+
+        ids = [d.get_id()[1] for d in structure[self.model][self.chain]]
+        if (first_residue is None) and (last_residue is None):
+            self.res_ids_pdb = ids
+        elif last_residue is None:
             try:
                 first_index = ids.index(first_residue)
                 self.res_ids_pdb = ids[first_index:]
@@ -292,6 +306,34 @@ class Protein():
                       "Starting from the first existing residue instead"
                       f" which is {ids[0]}.")
                 self.res_ids_pdb = ids
+        elif first_residue is None:
+            try:
+                last_index = ids.index(last_residue)
+                self.res_ids_pdb = ids[:last_index]
+            except (ValueError, IndexError):
+                print(f"WARNING: residue {last_residue} does not exist in "
+                      f"model {self.model} chain {self.chain}. "
+                      "Starting from the last existing residue instead"
+                      f" which is {ids[-1]}.")
+                self.res_ids_pdb = ids
+        else:
+            try:
+                first_index = ids.index(first_residue)
+            except (ValueError, IndexError):
+                print(f"WARNING: residue {first_residue} does not exist in "
+                      f"model {self.model} chain {self.chain}. "
+                      "Starting from the first existing residue instead"
+                      f" which is {ids[0]}.")
+                first_index = 0
+            try:
+                last_index = ids.index(last_residue) + 1
+            except (ValueError, IndexError):
+                print(f"WARNING: residue {last_residue} does not exist in "
+                      f"model {self.model} chain {self.chain}. "
+                      "Starting from the last existing residue instead"
+                      f" which is {ids[-1]}.")
+                last_index = len(ids)
+            self.res_ids_pdb = ids[first_index:last_index]
 
         self.vectors = []
         self.sample_space()
@@ -326,11 +368,10 @@ class Protein():
 
         """
         dssp = DSSP(self.structure[self.model], st.PDB)
-        #i_res = self.res_ids_pdb[0]
-        ids = self.res_ids_pdb
-        for i_res, res in zip(ids, self.structure[self.model][self.chain]):
+        for i_res in self.res_ids_pdb:
             # For simplification, the position of a residue is defined as the
             # position of its Cα.
+            res = self.structure[self.model][self.chain][i_res]
             try:
                 pt = Point(*res['CA'].coord)
             except KeyError:
@@ -555,5 +596,3 @@ class Slice():
                 print("Method must be 'ASA' or 'simple'")
         else:
             self.score = 0
-        # TODO: gérer la maj automatique des résidus compris dans la membrane
-        # et le calcul du score.
