@@ -285,10 +285,12 @@ class Protein():
             try:
                 first_index = ids.index(first_residue)
                 self.res_ids_pdb = ids[first_index:]
-            except ValueError:
-                print()
-            # TODO : gérer l'erreur
-
+            except (ValueError, IndexError):
+                print(f"WARNING: residue {first_residue} does not exist in "
+                      f"model {self.model} chain {self.chain}. "
+                      "Starting from the first existing residue instead"
+                      f" which is {ids[0]}.")
+                self.res_ids_pdb = ids
 
         self.vectors = []
         self.sample_space()
@@ -328,6 +330,7 @@ class Protein():
         for i_res, res in zip(ids, self.structure[self.model][self.chain]):
             # For simplification, the position of a residue is defined as the
             # position of its Cα.
+            print(i_res, res)
             pt = Point(*res['CA'].coord)
             asa = dssp[(self.chain, i_res)][3]  # Accessible surface area.
             tmp = Residue(res.id[1], res.resname, pt, asa)
