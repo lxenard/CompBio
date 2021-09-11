@@ -5,7 +5,7 @@ Created on Sun Sep  5 16:56:22 2021
 @author: Laura Xénard
 """
 
-import itertools
+
 from pathlib import Path
 import time
 

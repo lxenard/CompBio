@@ -127,8 +127,8 @@ class Sphere:
     ----------
     origin : Point
         The center of the sphere.
-    radius : int, optional
-            Radius of the sphere. The default is 1.
+    radius : int
+            Radius of the sphere.
     surf_pts : list(Point)
             Points on the surface of the Sphere.
 
@@ -195,13 +195,29 @@ class Sphere:
 
 class Residue:
     """
-    TODO
+    Represent a protein residue.
 
     Parameters
     ----------
+    num : int, optional
+        Position in the protein. The default is 0.
+    aa : str, optional
+        3 letters designation of the type of residue. The default is ''.
+    p : Point, optional
+        Position in 3D space. The default is Point().
+    asa : 0, optional
+        Accessible surface area. The default is 0.
 
     Attributes
     ----------
+    num : int
+        Position in the protein.
+    aa : str
+        3 letters designation of the type of residue.
+    coord : Point
+        Position in 3D space.
+    asa : 0
+        Accessible surface area.
 
     """
     def __init__(self, num=0, aa='', p=Point(), asa=0):
@@ -264,13 +280,37 @@ class Residue:
 
 class Protein():
     """
-    TODO
+    Represent a protein.
 
     Parameters
     ----------
+    structure : Bio.PDB.Structure
+        Protein structure parsed from a pdb file.
+    model : Bio.PDB.Model, optional
+        ID of the model on which to work. The default is 0.
+    chain : Bio.PDB.Chain, optional
+        ID of the chain on which to work. The default is 'A'.
+    first_residue : int, optional
+        ID of first residue to consider. The default is None.
+    last_residue : int, optional
+        ID of last residue to consider. The default is None.
 
     Attributes
     ----------
+    structure : Bio.PDB.Structure
+        Protein structure parsed from a pdb file.
+    model : Bio.PDB.Model
+        ID of the model on which to work. The default is 0.
+    chain : Bio.PDB.Chain
+        ID of the chain on which to work. The default is 'A'.
+    res_ids_pdb : list(int)
+        PDB IDs of the residues to consider.
+    vectors : list(Vector)
+        Vectors sampling the 3D space.
+    residues_burrowed : list(Residue)
+        Residues not exposed to solvent or membrane.
+    residues_exposed : list(Residue)
+        Residues exposed to solvent or membrane.
 
     """
     def __init__(self, structure, model=0, chain='A', first_residue=None,
@@ -390,12 +430,12 @@ class Protein():
 
     def move(self, shift):
         """
-        TODO
+        Move the Point.
 
         Parameters
         ----------
         shift : Point
-            DESCRIPTION.
+            How much to move on x, y and z axis.
 
         Returns
         -------
@@ -410,21 +450,41 @@ class Protein():
 
 class Slice():
     """
-    TODO
+    Represent a potential membrane position.
+
+    It is defined by 2 parallel plans.
 
     Parameters
     ----------
-    protein : TYPE
-        DESCRIPTION.
-    center : TYPE
-        DESCRIPTION.
-    normal : TYPE
-        DESCRIPTION.
-    method : TYPE, optional
-        DESCRIPTION. The default is 'ASA'.
+    protein : Protein
+        Protein to which the Slice belong.
+    center : float
+        Position of the slice on the normal vector.
+    normal : Vector
+        Vector normal to the slice. Gives the axis for thickening the slice.
+    method : {'ASA', 'simple'}, optional
+        Method for computing the score representing the likelihood of the
+        slice being the real membrane position. The default is 'ASA'.
 
     Attributes
     ----------
+    protein : Protein
+        Protein to which the Slice belong.
+    center : float
+        Position of the slice on the normal vector.
+    normal : Vector
+        Vector normal to the slice. Gives the axis for thickening the slice.
+    score_method : {'ASA', 'simple'}
+        Method for computing the score representing the likelihood of the
+        slice being the real membrane position.
+    thickness : [float, float]
+        Thickness of the Slice, from the center to the normal vector
+        starting point and ending point respectively.
+    residues : list(Residue)
+        Residues inside the Slice.
+    score : float
+        Score representing the likelihood of the slice being the real
+        membrane position
 
     """
     def __init__(self, protein, center, normal, method='ASA'):
