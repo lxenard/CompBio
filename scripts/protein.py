@@ -57,6 +57,13 @@ class Point:
         z = self.z - p.z
         return Point(x, y, z)
 
+    def __neg__(self):
+        x = -self.x
+        y = -self.y
+        z = -self.z
+        return Point(x, y, z)
+
+
     @classmethod
     def barycenter(cls, residues_list):
         """
@@ -430,7 +437,7 @@ class Protein():
 
     def move(self, shift):
         """
-        Move the Point.
+        Move the Protein's residues.
 
         Parameters
         ----------
@@ -443,9 +450,39 @@ class Protein():
 
         """
         for res in self.residues_exposed:
-            res.coord -= shift
+            res.coord += shift
         for res in self.residues_burrowed:
-            res.coord -= shift
+            res.coord += shift
+
+    def find_bounding_coord(self):
+        """
+        Find the extreme coordinates of the protin residues.
+
+        Returns
+        -------
+        None.
+
+        """
+        x_min = float('inf')
+        x_max = -float('inf')
+        y_min = float('inf')
+        y_max = -float('inf')
+        z_min = float('inf')
+        z_max = -float('inf')
+        for res in [*self.residues_exposed, *self.residues_burrowed]:
+            if res.coord.x < x_min:
+                x_min = res.coord.x
+            if res.coord.x > x_max:
+                x_max = res.coord.x
+            if res.coord.y < y_min:
+                y_min = res.coord.y
+            if res.coord.y > y_max:
+                y_max = res.coord.y
+            if res.coord.z < z_min:
+                z_min = res.coord.z
+            if res.coord.z > z_max:
+                z_max = res.coord.z
+        return x_min, x_max, y_min, y_max, z_min, z_max
 
 
 class Slice():
@@ -656,3 +693,20 @@ class Slice():
                 print("Method must be 'ASA' or 'simple'")
         else:
             self.score = 0
+
+    def move(self, shift):
+        """
+        Move the Slice's residues.
+
+        Parameters
+        ----------
+        shift : Point
+            How much to move on x, y and z axis.
+
+        Returns
+        -------
+        None.
+
+        """
+        for res in self.residues:
+            res.coord += shift

@@ -57,7 +57,7 @@ def init():
         #PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/2lop.pdb'
         #PDB = 'G:/RAID/Fac/M2_BI/PGP/CompBio/data/6g79.pdb'
         #PDB = '/home/sdv/m2bi/lxenard/Documents/PGP/CompBio/data/2n90.pdb'
-        MODEL = 1
+        MODEL = 0
         CHAIN = 'A'
         FIRST_RESIDUE = None
         LAST_RESIDUE = None

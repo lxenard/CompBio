@@ -43,7 +43,7 @@ if __name__ == '__main__':
     bary = ptn.Point.barycenter(prot.residues_exposed)
     if st.DEBUG:
         print(f"Barycenter: {bary}")
-    prot.move(bary)
+    prot.move(-bary)
 
     centered_slices = []
     # obtenir les plans orthogonaux centrés sur l'origine
@@ -115,10 +115,6 @@ if __name__ == '__main__':
     best_sli.thicken(-increment * cpt, normal_direction=True)
     print(best_sli)
 
-
-    # TODO: pour le renvoi des résultats, ne pas oublier de translater
-    # la membrane puisque le centre du repère a été déplacé sur le barycentre
-
     # Adding 2 dummy residues to represent the membrane delimiting planes.
     last_id = prot.structure[prot.model][prot.chain][prot.res_ids_pdb[-1]].id
     mem1_id = (last_id[0], last_id[1]+1, last_id[2])
@@ -128,26 +124,44 @@ if __name__ == '__main__':
     prot.structure[prot.model][prot.chain].add(mem1)
     prot.structure[prot.model][prot.chain].add(mem2)
 
-    # Adding dummy atoms to those 'membrane' residues to create a grid
-    # of atoms representing a membrane delimiting plane.
+    # Creating grids to place dummy atoms in order to represent the
+    # membrane 2 delimiting planes.
+    resolution = 1
+    shift = best_sli.center
+    thickness = best_sli.thickness
+    a = best_sli.normal.end.x
+    b = best_sli.normal.end.y
+    c = best_sli.normal.end.z
+    # Finding bounding coordinates of the protein.
+    x_min, x_max, y_min, y_max, z_min, z_max = prot.find_bounding_coord()
+    # Building the grids.
+    xx, yy = np.mgrid[x_min:x_max:resolution, y_min:y_max:resolution]
+    zz1 = (-a*xx - b*yy - thickness[0] + shift) / c
+    zz2 = (-a*xx - b*yy + thickness[1] + shift) / c
+    # Translation of the membrane planes to account for centering the 3D
+    # space onto the protein barycenter.
+    xx = xx + bary.x
+    yy = yy + bary.y
+    zz1 = zz1 + bary.z
+    zz2 = zz2 + bary.z
+
+    # Adding the dummy atoms to the 'membrane' residues.
     cpt = 1
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', PDBConstructionWarning)
-        new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
-    mem1.add(new)
-
-
-# =============================================================================
-#     try:
-#         new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
-#     except PDBConstructionWarning:
-#         print(PDBConstructionWarning)
-#     mem1.add(new)
-#     cpt += 1
-#     new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
-#     mem1.add(new)
-# =============================================================================
-
+        for x, y, z in zip(xx.flatten(), yy.flatten(), zz1.flatten()):
+            new = Atom(f'D{cpt}', np.array([x, y, z]), 0, 1, 32,
+                       f' D{cpt} ', cpt)
+            mem1.add(new)
+            cpt += 1
+    cpt = 1
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', PDBConstructionWarning)
+        for x, y, z in zip(xx.flatten(), yy.flatten(), zz2.flatten()):
+            new = Atom(f'D{cpt}', np.array([x, y, z]), 0, 1, 32,
+                       f' D{cpt} ', cpt)
+            mem2.add(new)
+            cpt += 1
 
     # Saving a PDB file that include the membrane position
     filename = 'G:/RAID/Fac/M2_BI/PGP/CompBio/tmp/2n90_extract.pdb'
@@ -156,7 +170,7 @@ if __name__ == '__main__':
     # TODO: derivate Bio.PDB.Dice.ChainSelector to implement model
     # choice support.
     Dice.extract(prot.structure, prot.chain, prot.res_ids_pdb[0],
-                 prot.res_ids_pdb[-1]+1, filename)
+                 prot.res_ids_pdb[-1]+2, filename)
 
     end = time.time() - start
     print('\nDONE in {:.0f} min {:.2f} s.'.format(end // 60, end % 60))
