@@ -10,8 +10,20 @@ https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
 import math
 
 from Bio.PDB.DSSP import DSSP
+from Bio.PDB import PDBParser, Dice
+#from Bio.PDB.Atom import Atom
+import Bio.PDB.Atom
+from Bio.PDB.PDBExceptions import PDBConstructionWarning
+from Bio.PDB.PDBIO import PDBIO
+#from Bio.PDB.Residue import Residue
+import Bio.PDB.Residue
+import numpy as np
 
+import protein as ptn
 import settings as st
+
+import warnings
+
 
 
 class Point:
@@ -456,7 +468,7 @@ class Protein():
 
     def find_bounding_coord(self):
         """
-        Find the extreme coordinates of the protin residues.
+        Find the extreme coordinates of the protein residues.
 
         Returns
         -------
@@ -483,6 +495,105 @@ class Protein():
             if res.coord.z > z_max:
                 z_max = res.coord.z
         return x_min, x_max, y_min, y_max, z_min, z_max
+
+    def add_membrane(self, sli):
+        """
+        Add the slice (i.e. membrane) position to the Protein.
+
+        The membrane is represented by 2 residues, one for each of its
+        borders. The residues are made of dummy atoms that build 2
+        parallel grids.
+
+        Parameters
+        ----------
+        sli : Slice
+            The Slice to add to the Protein.
+
+        Returns
+        -------
+        None.
+
+        """
+        smc = self.structure[self.model][self.chain]
+        ids = [d.get_id()[1] for d in smc]
+
+        # Adding 2 dummy residues to represent the membrane delimiting planes.
+        #last_id = smc[self.res_ids_pdb[-1]].id
+        last_id = smc[ids[-1]].id
+        mem1_id = (last_id[0], last_id[1]+1, last_id[2])
+        mem2_id = (last_id[0], last_id[1]+2, last_id[2])
+        mem1 = Bio.PDB.Residue.Residue(mem1_id, 'MEM', '')
+        mem2 = Bio.PDB.Residue.Residue(mem2_id, 'MEM', '')
+        smc.add(mem1)
+        smc.add(mem2)
+
+        # Creating grids to place dummy atoms in order to represent the
+        # membrane 2 delimiting planes.
+        resolution = 1
+        shift = sli.center
+        thickness = sli.thickness
+        a = sli.normal.end.x
+        b = sli.normal.end.y
+        c = sli.normal.end.z
+        # Finding bounding coordinates of the protein to know approximately
+        # where to place the grids.
+        x_min, x_max, y_min, y_max, z_min, z_max = self.find_bounding_coord()
+        # Building the grids.
+        xx, yy = np.mgrid[x_min:x_max:resolution, y_min:y_max:resolution]
+        zz1 = (-a*xx - b*yy - thickness[0] + shift) / c
+        zz2 = (-a*xx - b*yy + thickness[1] + shift) / c
+        # Translation of the membrane planes to account for the centering
+        # of the 3D space onto the protein barycenter.
+        bary = Point.barycenter(self.residues_exposed)
+        xx = xx + bary.x
+        yy = yy + bary.y
+        zz1 = zz1 + bary.z
+        zz2 = zz2 + bary.z
+
+        # Adding the dummy atoms to the 'membrane' residues.
+        cpt = 1
+        with warnings.catch_warnings():
+            # If not ignore, will generate a warning for each atom because
+            # its element is unknown (None by default).
+            warnings.simplefilter('ignore', PDBConstructionWarning)
+            for x, y, z in zip(xx.flatten(), yy.flatten(), zz1.flatten()):
+                new = Bio.PDB.Atom.Atom(f'D{cpt}', np.array([x, y, z]),
+                                            0, 1, 32, f' D{cpt} ', cpt)
+                mem1.add(new)
+                cpt += 1
+        cpt = 1
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', PDBConstructionWarning)
+            for x, y, z in zip(xx.flatten(), yy.flatten(), zz2.flatten()):
+                new = Bio.PDB.Atom.Atom(f'D{cpt}', np.array([x, y, z]),
+                                            0, 1, 32, f' D{cpt} ', cpt)
+                mem2.add(new)
+                cpt += 1
+
+    def save_pdb(self, pdb_file):
+        """
+        Save the Protein in a PDB file.
+
+        Parameters
+        ----------
+        pdb_file : str
+            Absolute path of the output PDB file.
+
+        Returns
+        -------
+        None.
+
+        """
+        # It's not possible to extract something from another model than 0.
+        # TODO: derivate Bio.PDB.Dice.ChainSelector to implement model
+        # choice support.
+# =============================================================================
+#         Dice.extract(self.structure, self.chain, self.res_ids_pdb[0],
+#                      self.res_ids_pdb[-1]+2, pdb_file)
+# =============================================================================
+        smc = self.structure[self.model][self.chain]
+        ids = [d.get_id()[1] for d in smc]
+        Dice.extract(self.structure, self.chain, ids[0], ids[-1], pdb_file)
 
 
 class Slice():
