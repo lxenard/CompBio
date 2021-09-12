@@ -9,13 +9,17 @@ Created on Sun Sep  5 16:56:22 2021
 from pathlib import Path
 import time
 
-from Bio.PDB import PDBParser
-from mayavi import mlab
+from Bio.PDB import PDBParser, Dice
+from Bio.PDB.Atom import Atom
+from Bio.PDB.PDBExceptions import PDBConstructionWarning
+from Bio.PDB.PDBIO import PDBIO
+from Bio.PDB.Residue import Residue
 import numpy as np
 
 import protein as ptn
 import settings as st
 
+import warnings
 
 
 if __name__ == '__main__':
@@ -41,55 +45,11 @@ if __name__ == '__main__':
         print(f"Barycenter: {bary}")
     prot.move(bary)
 
-    mlab.figure(1, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0), size=(600, 600))
-    mlab.clf()
-
-    mlab.points3d(0, 0, 0, scale_factor=0.8, color=(1, 0, 0))
-# =============================================================================
-#     vectors = []
-#     for point in sphere.surf_pts:
-#         #mlab.points3d(point.x, point.y, point.z, scale_factor=0.05)
-#         vectors.append(ptn.Vector(point))
-# =============================================================================
-    # mlab.show()
-
-    to_draw = 1
-
-# =============================================================================
-#     mlab.plot3d(prot.vectors[to_draw].get_xx(), prot.vectors[to_draw].get_yy(),
-#                 prot.vectors[to_draw].get_zz(), color=(0, 1, 0),
-#                 tube_radius=None)
-# =============================================================================
-
     centered_slices = []
     # obtenir les plans orthogonaux centrés sur l'origine
     for v in prot.vectors:
         s = ptn.Slice(prot, 0, v, st.SCORE_METHOD)
         centered_slices.append(s)
-
-    # Drawing all the exposed residues of the protein.
-    for res in prot.residues_exposed:
-        mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
-                      scale_factor=1, color=(0.5, 0, 0.5))
-
-# =============================================================================
-#     a = centered_slices[to_draw].normal.end.x
-#     b = centered_slices[to_draw].normal.end.y
-#     c = centered_slices[to_draw].normal.end.z
-#     x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
-#     z = (-a*x - b*y + -7) / c
-#     zz = (-a*x - b*y + 7) / c
-#     mlab.surf(x, y, z)
-#     mlab.surf(x, y, zz)
-# =============================================================================
-
-# =============================================================================
-#     for res in centered_slices[to_draw].residues:
-#         mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
-#                       scale_factor=1, color=(0, 1, 0))
-# =============================================================================
-
-    #mlab.show()
 
     # Translation of the centered slices along their normal vector to get
     # all possible slices.
@@ -120,35 +80,6 @@ if __name__ == '__main__':
     best_index, best_sli = best
     for res in best_sli.residues:
         print(res.num, res.aa)
-
-# =============================================================================
-#     for sli in slices[:100]:
-#         print(sli.score)
-#
-#     exit
-# =============================================================================
-
-    to_draw = best_index
-    shift = slices[to_draw].center
-    thickness = slices[to_draw].thickness
-    a = slices[to_draw].normal.end.x
-    b = slices[to_draw].normal.end.y
-    c = slices[to_draw].normal.end.z
-    x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
-    z = (-a*x - b*y - thickness[0] + shift) / c
-    zz = (-a*x - b*y + thickness[1] + shift) / c
-    mlab.surf(x, y, z, color=(0, 0, 0.8))
-    mlab.surf(x, y, zz, color=(0, 0, 0.8))
-
-    for res in slices[to_draw].residues:
-        mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
-                      scale_factor=1, color=(0, 1, 1))
-
-    mlab.plot3d(slices[to_draw].normal.get_xx(), slices[to_draw].normal.get_yy(),
-                slices[to_draw].normal.get_zz(), color=(0, 1, 1),
-                tube_radius=None)
-
-    mlab.show()
 
     # Thickening the best found slice to maximise the score.
     base_score = best_sli.score
@@ -187,6 +118,45 @@ if __name__ == '__main__':
 
     # TODO: pour le renvoi des résultats, ne pas oublier de translater
     # la membrane puisque le centre du repère a été déplacé sur le barycentre
+
+    # Adding 2 dummy residues to represent the membrane delimiting planes.
+    last_id = prot.structure[prot.model][prot.chain][prot.res_ids_pdb[-1]].id
+    mem1_id = (last_id[0], last_id[1]+1, last_id[2])
+    mem2_id = (last_id[0], last_id[1]+2, last_id[2])
+    mem1 = Residue(mem1_id, 'MEM', '')
+    mem2 = Residue(mem2_id, 'MEM', '')
+    prot.structure[prot.model][prot.chain].add(mem1)
+    prot.structure[prot.model][prot.chain].add(mem2)
+
+    # Adding dummy atoms to those 'membrane' residues to create a grid
+    # of atoms representing a membrane delimiting plane.
+    cpt = 1
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', PDBConstructionWarning)
+        new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
+    mem1.add(new)
+
+
+# =============================================================================
+#     try:
+#         new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
+#     except PDBConstructionWarning:
+#         print(PDBConstructionWarning)
+#     mem1.add(new)
+#     cpt += 1
+#     new = Atom(f'DH{cpt}', np.array([5, 5, 5]), 0, 1, 32, f' DH{cpt} ', cpt)
+#     mem1.add(new)
+# =============================================================================
+
+
+    # Saving a PDB file that include the membrane position
+    filename = 'G:/RAID/Fac/M2_BI/PGP/CompBio/tmp/2n90_extract.pdb'
+    io = PDBIO()
+    # It's not possible to extract something from another model than 0.
+    # TODO: derivate Bio.PDB.Dice.ChainSelector to implement model
+    # choice support.
+    Dice.extract(prot.structure, prot.chain, prot.res_ids_pdb[0],
+                 prot.res_ids_pdb[-1]+1, filename)
 
     end = time.time() - start
     print('\nDONE in {:.0f} min {:.2f} s.'.format(end // 60, end % 60))
