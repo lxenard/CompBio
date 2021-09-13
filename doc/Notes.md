@@ -37,7 +37,7 @@ identification des segments transmembranaires
 
 ## Methods
 
-calcul  de la surface accessible au solvant pour chacun des atomes pouvant potentiellement interagir avec la bicouche
+calcul de la surface accessible au solvant pour chacun des atomes pouvant potentiellement interagir avec la bicouche
 
 Pour chaque tranche, somme de l'hydrophobicité des résidus hydrophiles AAS d'une part et des résidus hydrophobes AAS d'autre part
 
@@ -252,3 +252,5 @@ pseudo code ou schéma en annexe
 
 https://www.quora.com/Given-a-point-and-a-plane-how-would-you-determine-which-side-of-the-plane-the-point-lies
 https://stackoverflow.com/questions/13034496/using-global-variables-between-files
+
+color red, (name D*)

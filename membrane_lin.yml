@@ -1,0 +1,11 @@
+name: membrane
+channels:
+    - defaults
+    - salilab
+    - conda-forge
+dependencies:
+    - python=3.7
+    - numpy
+    - biopython
+    - dssp
+    - mayavi

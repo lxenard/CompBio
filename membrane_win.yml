@@ -1,0 +1,11 @@
+name: membrane
+channels:
+    - defaults
+    - speleo3
+    - conda-forge
+dependencies:
+    - python=3.7
+    - numpy
+    - biopython
+    - dssp
+    - mayavi
