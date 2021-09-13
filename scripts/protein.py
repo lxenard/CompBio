@@ -1,28 +1,31 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Sep  5 16:55:30 2021
-
 @author: Laura Xénard
 
-https://www.cmu.edu/biolphys/deserno/pdf/sphere_equi.pdf
+This module defines the following classes used in membrane_plane.py:
+    * some geometrical ones:
+        - Point
+        - Vector
+        - Sphere
+    * and some biological ones:
+        - Residue
+        - Protein
+        - Slice
 """
 
-import math
 
+import math
+import warnings
+
+from Bio.PDB import Dice
 from Bio.PDB.DSSP import DSSP
-from Bio.PDB import PDBParser, Dice
-#from Bio.PDB.Atom import Atom
 import Bio.PDB.Atom
 from Bio.PDB.PDBExceptions import PDBConstructionWarning
-from Bio.PDB.PDBIO import PDBIO
-#from Bio.PDB.Residue import Residue
 import Bio.PDB.Residue
 import numpy as np
 
-import protein as ptn
 import settings as st
-
-import warnings
 
 
 
@@ -124,12 +127,39 @@ class Vector:
         return f"(start: {self.start}, end: {self.end})"
 
     def get_xx(self):
+        """
+        Getter for the x coordinates.
+
+        Returns
+        -------
+        list
+            x coordinates of the Vector.
+
+        """
         return [self.start.x, self.end.x]
 
     def get_yy(self):
+        """
+        Getter for the y coordinates.
+
+        Returns
+        -------
+        list
+            y coordinates of the Vector.
+
+        """
         return [self.start.y, self.end.y]
 
     def get_zz(self):
+        """
+        Getter for the z coordinates.
+
+        Returns
+        -------
+        list
+            z coordinates of the Vector.
+
+        """
         return [self.start.z, self.end.z]
 
 
@@ -330,6 +360,8 @@ class Protein():
         Residues not exposed to solvent or membrane.
     residues_exposed : list(Residue)
         Residues exposed to solvent or membrane.
+    residues_exposed_hydrophobic : list(Residue)
+        Hydrophobic Residues exposed to solvent or membrane.
 
     """
     def __init__(self, structure, model=0, chain='A', first_residue=None,
@@ -401,6 +433,9 @@ class Protein():
         self.residues_exposed = []
         self.find_exposed_residues()
 
+        self.residues_exposed_hydrophobic = []
+        self.find_exposed_hydrophobic_residues()
+
     def sample_space(self):
         """
         Sample the space in several vectors.
@@ -447,14 +482,9 @@ class Protein():
                     # Save burrowed residues in case they are needed later.
                     self.residues_burrowed.append(tmp)
 
-    def move(self, shift):
+    def find_exposed_hydrophobic_residues(self):
         """
-        Move the Protein's residues.
-
-        Parameters
-        ----------
-        shift : Point
-            How much to move on x, y and z axis.
+        Find all the hydrophobic residues.
 
         Returns
         -------
@@ -462,9 +492,12 @@ class Protein():
 
         """
         for res in self.residues_exposed:
-            res.coord += shift
-        for res in self.residues_burrowed:
-            res.coord += shift
+            try:
+                if res.is_hydrophobic():
+                    self.residues_exposed_hydrophobic.append(res)
+            except ValueError:
+                print(f"Can't determine hydrophobicity of {res}: "
+                      f"unknown amino acid.")
 
     def find_bounding_coord(self):
         """
@@ -498,7 +531,7 @@ class Protein():
 
     def add_membrane(self, sli):
         """
-        Add the slice (i.e. membrane) position to the Protein.
+        Add the slice (i.e. membrane) position to the Protein structure.
 
         The membrane is represented by 2 residues, one for each of its
         borders. The residues are made of dummy atoms that build 2
@@ -516,6 +549,7 @@ class Protein():
         """
         smc = self.structure[self.model][self.chain]
         ids = [d.get_id()[1] for d in smc]
+        bary = Point(*smc.center_of_mass())
 
         # Adding 2 dummy residues to represent the membrane delimiting planes.
         #last_id = smc[self.res_ids_pdb[-1]].id
@@ -544,7 +578,6 @@ class Protein():
         zz2 = (-a*xx - b*yy + thickness[1] + shift) / c
         # Translation of the membrane planes to account for the centering
         # of the 3D space onto the protein barycenter.
-        bary = Point.barycenter(self.residues_exposed)
         xx = xx + bary.x
         yy = yy + bary.y
         zz1 = zz1 + bary.z
@@ -590,6 +623,25 @@ class Protein():
         smc = self.structure[self.model][self.chain]
         ids = [d.get_id()[1] for d in smc]
         Dice.extract(self.structure, self.chain, ids[0], ids[-1], pdb_file)
+
+    def move(self, shift):
+        """
+        Move the Protein's residues.
+
+        Parameters
+        ----------
+        shift : Point
+            How much to move on x, y and z axis.
+
+        Returns
+        -------
+        None.
+
+        """
+        for res in self.residues_exposed:
+            res.coord += shift
+        for res in self.residues_burrowed:
+            res.coord += shift
 
 
 class Slice():
@@ -711,21 +763,22 @@ class Slice():
 
         return len(self.residues)
 
-    def compute_score(self, method='ASA'):
+    def compute_score(self, method='simple'):
         """
         Compute the membrane score of the Slice.
 
         The higher the score the more probable it is that the Slice
         represents the position of a membrane.
+        'ASA' computes the ratio ASA of exposed hydrophobic residues in the
+        slice to ASA of exposed hydrophobic residues in the protein.
+        'simple' computes the ratio number of exposed hydrophobic residues
+        in the slice to number of exposed hydrophobic residues in the protein.
 
         Parameters
         ----------
         method : {'ASA', 'simple'}, optional
-            The method used to compute the Slice score. 'ASA' computes
-            the ratio accessible surface area (ASA) of hydrophobic
-            residues to ASA of all residues. 'simple' computes the ratio
-            number of hydrophobic residues to total number of residues.
-            The default is 'ASA'.
+            The method used to compute the Slice score. The default is
+            'simple'.
 
         Raises
         ------
@@ -751,17 +804,14 @@ class Slice():
                 except ValueError:
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")
-            for res in self.protein.residues_exposed:
-                try:
-                    if res.is_hydrophobic():
-                        asa_total += res.asa
-                except ValueError:
-                    print(f"Can't determine hydrophobicity of {res}: "
-                          f"unknown amino acid.")
+
+            for res in self.protein.residues_exposed_hydrophobic:
+                asa_total += res.asa
             self.score = asa_slice / asa_total
 
         elif method == 'simple':
             cpt_slice = 0
+
             for res in self.residues:
                 try:
                     if res.is_hydrophobic():
@@ -772,15 +822,10 @@ class Slice():
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")
             cpt_total = 0
-            for res in self.protein.residues_exposed:
-                try:
-                    if res.is_hydrophobic():
-                        cpt_total += 1
-                except ValueError:
-                    print(f"Can't determine hydrophobicity of {res}: "
-                          f"unknown amino acid.")
+
+            for res in self.protein.residues_exposed_hydrophobic:
+                cpt_total += 1
             self.score = cpt_slice / cpt_total
-            #print(cpt_slice, cpt_total)
 
     def thicken(self, increment=1, normal_direction=True):
         """
@@ -814,19 +859,46 @@ class Slice():
         else:
             self.score = 0
 
-    def move(self, shift):
+    def maximise_score(self):
         """
-        Move the Slice's residues.
-
-        Parameters
-        ----------
-        shift : Point
-            How much to move on x, y and z axis.
+        Thicken the Slice in order to maximise its score.
 
         Returns
         -------
         None.
 
         """
-        for res in self.residues:
-            res.coord += shift
+        base_score = self.score
+        increment = 1
+
+        # Exploring thickened slices toward the end of the normal vector.
+        new_scores_up = [base_score]
+        self.thicken(increment, normal_direction=True)
+        cpt = 0
+        while self.score != 0:
+            new_scores_up.append(self.score)
+            self.thicken(increment, normal_direction=True)
+            cpt += 1
+            if cpt >= 5 and new_scores_up[-5:].count(new_scores_up[-1]) == 5:
+                # The search stops when there 5 consecutive identical scores.
+                break
+        # Setting the thickness to the one that yields the maximal score.
+        best_index = np.argmax(new_scores_up)
+        backtrack_steps = len(new_scores_up[best_index:])
+        # Thinning the slice to backtrack to the best one.
+        self.thicken(-increment * backtrack_steps, normal_direction=True)
+
+        # Same but toward the start of the normal vector.
+        new_scores_down = [base_score]
+        self.thicken(increment, normal_direction=False)
+        cpt = 0
+        while self.score != 0:
+            new_scores_down.append(self.score)
+            self.thicken(increment, normal_direction=False)
+            cpt += 1
+            if (cpt >= 5
+                and new_scores_down[-5:].count(new_scores_down[-1])) == 5:
+                break
+        best_index = np.argmax(new_scores_down)
+        backtrack_steps = len(new_scores_down[best_index:])
+        self.thicken(-increment * backtrack_steps, normal_direction=False)

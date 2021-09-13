@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sun Sep  5 16:56:22 2021
-
 @author: Laura Xénard
+
+This module is the main module of the program.
+
 """
 
 
@@ -31,11 +33,8 @@ if __name__ == '__main__':
     prot = ptn.Protein(structure, st.MODEL, st.CHAIN, st.FIRST_RESIDUE,
                        st.LAST_RESIDUE)
 
-    print(structure[st.MODEL][st.CHAIN].center_of_mass())
-    exit
-
     # Place the center of the coordinate system at the residues barycenter.
-    bary = ptn.Point.barycenter(prot.residues_exposed)
+    bary = ptn.Point(*structure[st.MODEL][st.CHAIN].center_of_mass())
     if st.DEBUG:
         print(f"Barycenter: {bary}")
     prot.move(-bary)
@@ -75,7 +74,7 @@ if __name__ == '__main__':
         a = centered_slices[to_draw].normal.end.x
         b = centered_slices[to_draw].normal.end.y
         c = centered_slices[to_draw].normal.end.z
-        x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
+        x, y = np.mgrid[-20:20:100j, -20:20:100j]
         z = (-a*x - b*y + -7) / c
         zz = (-a*x - b*y + 7) / c
         mlab.surf(x, y, z)
@@ -104,22 +103,15 @@ if __name__ == '__main__':
             center -= shift
             new_sli_down = ptn.Slice(prot, center, sli.normal, st.SCORE_METHOD)
 
+    # Finding the slice with the best score.
     slices.sort(reverse=True)
-    derp = 0
-    best = derp, slices[derp]
-    scores = []
-    for sli in slices:
-        scores.append(sli.score)
-        #print(sli.score)
-# =============================================================================
-#     best = next(((i, sli) for i, sli in enumerate(slices)
-#                  if sli.score < 1), None)
-# =============================================================================
-    assert best is not None, "All slices have a score of 1."
-    print(best)
-    best_index, best_sli = best
-    for res in best_sli.residues:
-        print(res.num, res.aa)
+    best_index, best_sli = 0, slices[0]
+
+    if st.VERBOSE:
+        print(f"Best slice before thickening: {best_sli}")
+        print("Residues inside the membrane:")
+        for res in best_sli.residues:
+            print(f"\t{res.num} {res.aa}")
 
     if st.DEBUG:
         to_draw = best_index  # Which slice to draw.
@@ -141,48 +133,45 @@ if __name__ == '__main__':
         a = slices[to_draw].normal.end.x
         b = slices[to_draw].normal.end.y
         c = slices[to_draw].normal.end.z
-        x, y = np.mgrid[-20:20:1000j, -20:20:1000j]
+        x, y = np.mgrid[-20:20:100j, -20:20:100j]
         z = (-a*x - b*y - thickness[0] + shift) / c
         zz = (-a*x - b*y + thickness[1] + shift) / c
-        mlab.surf(x, y, z)
-        mlab.surf(x, y, zz)
+        mlab.surf(x, y, z, color=(1, 0, 0))
+        mlab.surf(x, y, zz, color=(1, 0, 0))
         mlab.show()
 
-# =============================================================================
-#     # Thickening the best found slice to maximise the score.
-#     base_score = best_sli.score
-#     increment = 1
-#
-#     # Toward the end of the normal vector ('up').
-#     new_scores_up = [base_score]
-#     best_sli.thicken(increment, normal_direction=True)
-#     cpt = 0
-#     while best_sli.score != 0:
-#         new_scores_up.append(best_sli.score)
-#         best_sli.thicken(increment, normal_direction=True)
-#         cpt += 1
-#         if cpt >= 5 and new_scores_up[-5:].count(new_scores_up[-1]) == 5:
-#             break
-#
-#     # Resetting the slice
-#     best_sli.thicken(-increment * cpt, normal_direction=False)
-#     print(best_sli)
-#
-#     # Toward the start of the normal vector ('down').
-#     new_scores_down = [base_score]
-#     best_sli.thicken(increment, normal_direction=False)
-#     cpt = 0
-#     while best_sli.score != 0:
-#         new_scores_down.append(best_sli.score)
-#         best_sli.thicken(increment, normal_direction=False)
-#         cpt += 1
-#         if cpt >= 5 and new_scores_down[-5:].count(new_scores_down[-1]) == 5:
-#             break
-#
-#     # Resetting the slice
-#     best_sli.thicken(-increment * cpt, normal_direction=True)
-#     print(best_sli)
-# =============================================================================
+    # Thicken the slice in order to have the maximal scoring thickness.
+    best_sli.maximise_score()
+
+    if st.DEBUG:
+        title = (f"DEBUG best slice after thickening "
+                 f"- Score: {best_sli.score:.5f}")
+        mlab.figure(title, bgcolor=(1, 1, 1), fgcolor=(0, 0, 0),
+                    size=(600, 600))
+        mlab.clf()
+        # Protein exposed residues in purple.
+        for res in prot.residues_exposed:
+            mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
+                          scale_factor=1, color=(0.5, 0, 0.5))
+        # Slice exposed residues in neon green.
+        for res in best_sli.residues:
+            mlab.points3d(res.coord.x, res.coord.y, res.coord.z,
+                          scale_factor=1, color=(0, 1, 0))
+        # Bounding membrane planes.
+        shift = best_sli.center
+        thickness = best_sli.thickness
+        a = best_sli.normal.end.x
+        b = best_sli.normal.end.y
+        c = best_sli.normal.end.z
+        x, y = np.mgrid[-20:20:100j, -20:20:100j]
+        z = (-a*x - b*y - thickness[0] + shift) / c
+        zz = (-a*x - b*y + thickness[1] + shift) / c
+        mlab.surf(x, y, z, color=(1, 0, 0))
+        mlab.surf(x, y, zz, color=(1, 0, 0))
+        mlab.show()
+
+    if st.VERBOSE:
+        print(f"Best slice after thickening: {best_sli}")
 
     # Adding atoms representing the membrane position to the protein
     # and saving the updated protein as a PDB file.
@@ -192,5 +181,8 @@ if __name__ == '__main__':
     filepath = Path(st.PDB).parent.joinpath(filename)
     prot.save_pdb(str(filepath))
 
+    print(f"Membrane thickness: {sum(best_sli.thickness)}Å")
+    print(f"Number of residues inside the membrane: {len(best_sli.residues)}")
+
     end = time.time() - start
-    print('\nDONE in {:.0f} min {:.2f} s.'.format(end // 60, end % 60))
+    print('DONE in {:.0f} min {:.2f} s.'.format(end // 60, end % 60))
