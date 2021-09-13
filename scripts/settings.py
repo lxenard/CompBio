@@ -61,8 +61,8 @@ def init():
         CHAIN = 'A'
         FIRST_RESIDUE = None
         LAST_RESIDUE = None
-        SCORE_METHOD = 'ASA'
-        IS_EXPOSED_THRESHOLD = 0.3
-        N_DIRECTIONS = 100
-        DEBUG = False
+        SCORE_METHOD = 'simple'
+        IS_EXPOSED_THRESHOLD = 0.4
+        N_DIRECTIONS = 20
+        DEBUG = True
         VERBOSE = False

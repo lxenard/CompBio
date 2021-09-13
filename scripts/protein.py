@@ -587,10 +587,6 @@ class Protein():
         # It's not possible to extract something from another model than 0.
         # TODO: derivate Bio.PDB.Dice.ChainSelector to implement model
         # choice support.
-# =============================================================================
-#         Dice.extract(self.structure, self.chain, self.res_ids_pdb[0],
-#                      self.res_ids_pdb[-1]+2, pdb_file)
-# =============================================================================
         smc = self.structure[self.model][self.chain]
         ids = [d.get_id()[1] for d in smc]
         Dice.extract(self.structure, self.chain, ids[0], ids[-1], pdb_file)
@@ -745,33 +741,46 @@ class Slice():
             raise ValueError
 
         if method == 'ASA':
-            hydrophobic_asa = 0
-            total_asa_slice = 0
-            total_asa_prot = 0
-
-            for res in self.protein.residues_exposed:
-                total_asa_prot += res.asa
+            asa_slice = 0
+            asa_total = 0
 
             for res in self.residues:
                 try:
                     if res.is_hydrophobic():
-                        hydrophobic_asa += res.asa
-                    total_asa_slice += res.asa
+                        asa_slice += res.asa
                 except ValueError:
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")
-            self.score = hydrophobic_asa / total_asa_slice
+            for res in self.protein.residues_exposed:
+                try:
+                    if res.is_hydrophobic():
+                        asa_total += res.asa
+                except ValueError:
+                    print(f"Can't determine hydrophobicity of {res}: "
+                          f"unknown amino acid.")
+            self.score = asa_slice / asa_total
 
         elif method == 'simple':
-            cpt = 0
+            cpt_slice = 0
             for res in self.residues:
                 try:
                     if res.is_hydrophobic():
-                        cpt += 1
+                        cpt_slice += 1
+                    else:
+                        cpt_slice -= 0.5
                 except ValueError:
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")
-            self.score = cpt / len(self.residues)
+            cpt_total = 0
+            for res in self.protein.residues_exposed:
+                try:
+                    if res.is_hydrophobic():
+                        cpt_total += 1
+                except ValueError:
+                    print(f"Can't determine hydrophobicity of {res}: "
+                          f"unknown amino acid.")
+            self.score = cpt_slice / cpt_total
+            #print(cpt_slice, cpt_total)
 
     def thicken(self, increment=1, normal_direction=True):
         """
