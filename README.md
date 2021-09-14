@@ -1,7 +1,7 @@
 `membrane_plane.py` est un programme permettant (parfois) de déterminer la position de la membrane sur une protéine transmembranaire uniquement à partir de l'information de structure de celle-ci telle que fournie par un fichier PDB.
 
 Il s'inspire fortement des algorithmes décrits dans [Transmembrane proteins in the Protein Data
-Bank: identification and classification](https://doi.org/10.1093/bioinformatics/bth340) (Tusnády, Dosztányi et Simon 2004) et dans [Membrane positioning for high-and low-resolution protein structures through a binary classification approach](https://doi.org/10.1093/protein/gzv063) (Postic, Ghouzm, Guiraud et Gelly 2016).
+Bank: identification and classification](https://doi.org/10.1093/bioinformatics/bth340) (Tusnády *et al.* 2004) et dans [Membrane positioning for high-and low-resolution protein structures through a binary classification approach](https://doi.org/10.1093/protein/gzv063) (Postic *et al.* 2016).
 
 # Installation
 
@@ -53,7 +53,7 @@ On peut sélectionner le modèle sur lequel travailler grâce à l'option `-m` (
 
 ```python ./scripts/membrane_plane.py ./data/2n90.pdb -m 2 -c 'B'```
 
-Le fichier de sortie sera alors : `2n90_membrane_m2_cB_fr101_lr139.pdb`
+Le fichier de sortie sera alors : `2n90_membrane_m2_cB_fr101_lr139.pdb` \
 Si le modèle ou la chaîne n'existe pas au sein de la protéine, le premier modèle et la première chaîne de la structure seront traités. Par défaut, le modèle est fixé à 0 et la chaîne A.
 
 ### Sous-sélection de résidus
@@ -62,7 +62,7 @@ On peut également ne travailler que sur une sous-sélection de résidus grâce 
 
 ```python ./scripts/membrane_plane.py ./data/2n90.pdb -f 10 l 30```
 
-Le fichier de sortie sera alors : `2n90_membrane_m0_cA_fr10_lr30.pdb`
+Le fichier de sortie sera alors : `2n90_membrane_m0_cA_fr10_lr30.pdb` \
 Si ces résidus n'existe pas au sein du modèle et de la chaîne, tous les résidus de la chaîne et du modèle seront traités, comme si les options `-r` et `-l` n'avaient pas été renseignées.
 
 ### Modifications des paramètres de calcul
