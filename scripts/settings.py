@@ -28,9 +28,9 @@ def init():
                         help="model of the protein to process")
     parser.add_argument("-c", "--chain", default='A',
                         help="chain of the protein to process")
-    parser.add_argument("-f", "--first_residue", default=None,
+    parser.add_argument("-f", "--first_residue", type=int, default=None,
                         help="id of the first residue to consider")
-    parser.add_argument("-l", "--last_residue", default=None,
+    parser.add_argument("-l", "--last_residue", type=int, default=None,
                         help="id of the last residue to consider")
     parser.add_argument("-t", "--threshold", type=float, default=0.4,
                         help=("ASA threshold from which residues are "
