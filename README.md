@@ -1,7 +1,7 @@
 `membrane_plane.py` est un programme permettant (parfois) de déterminer la position de la membrane sur une protéine transmembranaire uniquement à partir de l'information de structure de celle-ci telle que fournie par un fichier PDB.
 
 Il s'inspire fortement des algorithmes décrits dans [Transmembrane proteins in the Protein Data
-Bank: identification and classification](https://doi.org/10.1093/bioinformatics/bth340) (Tusnády, Dosztányi et Simon 2004) et dans [Membrane positioning for high- and low-resolution protein structures through a binary classification approach](https://doi.org/10.1093/protein/gzv063) (Postic, Ghouzm, Guiraud et Gelly 2016).
+Bank: identification and classification](https://doi.org/10.1093/bioinformatics/bth340) (Tusnády, Dosztányi et Simon 2004) et dans [Membrane positioning for high-and low-resolution protein structures through a binary classification approach](https://doi.org/10.1093/protein/gzv063) (Postic, Ghouzm, Guiraud et Gelly 2016).
 
 # Installation
 
@@ -9,15 +9,11 @@ Bank: identification and classification](https://doi.org/10.1093/bioinformatics/
 
 Les dépendances requises sont disponibles à la racine, dans le fichier  `membrane_lin.yml`. Pour installer automatiquement ces dépendances dans un environnement conda, saisir la commande :
 
-```
 ```conda env create -f membrane_lin.yml```
-```
 
 Ou pour aller plus vite et si mamba a été installé :
 
-```
 ```mamba env create -f membrane_lin.yml```
-```
 
 ## Windows
 
