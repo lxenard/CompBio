@@ -801,6 +801,8 @@ class Slice():
                 try:
                     if res.is_hydrophobic():
                         asa_slice += res.asa
+                    else:
+                        asa_slice -= 0.5*res.asa
                 except ValueError:
                     print(f"Can't determine hydrophobicity of {res}: "
                           f"unknown amino acid.")

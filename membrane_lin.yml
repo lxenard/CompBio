@@ -5,7 +5,7 @@ channels:
     - conda-forge
 dependencies:
     - python=3.7
-    - numpy
-    - biopython
-    - dssp
-    - mayavi
+    - biopython=1.79
+    - dssp=3.0
+    - numpy=1.20.3
+    - mayavi=4.7

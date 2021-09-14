@@ -34,7 +34,7 @@ if __name__ == '__main__':
                        st.LAST_RESIDUE)
 
     # Place the center of the coordinate system at the residues barycenter.
-    bary = ptn.Point(*structure[st.MODEL][st.CHAIN].center_of_mass())
+    bary = ptn.Point(*structure[prot.model][prot.chain].center_of_mass())
     if st.DEBUG:
         print(f"Barycenter: {bary}")
     prot.move(-bary)
