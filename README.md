@@ -1,3 +1,9 @@
+THIS REPO IS UNMAINTAINED.
+This was a university project done for a computational biology course in my Master's degree. 
+I DO NOT advise to use this code to truly identify membrane location of transmembrane proteins as the result will be at best imprecise, and at worst really incorrect.
+
+__________________
+
 `membrane_plane.py` est un programme permettant (parfois) de déterminer la position de la membrane sur une protéine transmembranaire uniquement à partir de l'information de structure de celle-ci telle que fournie par un fichier PDB.
 
 Il s'inspire fortement des algorithmes décrits dans [Transmembrane proteins in the Protein Data
